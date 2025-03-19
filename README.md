@@ -10,4 +10,4 @@ UTILISER GIT :
 ### > Enregistrer les changements :
     git add .
     git commit -m "message du commit"
-    git push origin master
+    git push origin main
