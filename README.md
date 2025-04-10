@@ -1,6 +1,8 @@
 # PROJET_INFO_S2
 Sujet : domotique
 
+https://moodle.ensta-bretagne.fr/mod/page/view.php?id=65221
+
 UTILISER GIT :
 
 ### > Charger le repo :
