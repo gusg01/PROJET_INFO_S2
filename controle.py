@@ -1,4 +1,5 @@
 # controle.py
+import math
 
 class ThermostatCentral:
     def __init__(self, mode='eco'):
