@@ -1,7 +1,7 @@
 # main.py
 
-from controle import Maison, Piece, ThermostatCentral, VanneThermostatique, Chauffage
-from simulation import initialiser_systeme, lancer_simulation
+from controle import ThermostatCentral, VanneThermostatique, Chauffage
+from simulation import Maison, Piece, initialiser_systeme, lancer_simulation
 import ihm  # Pour tracer ensuite
 
 def creer_maison_de_test():
@@ -22,7 +22,7 @@ def creer_maison_de_test():
 
     return maison, salon, chambre, cuisine
 
-def main():
+if __name__ == "__main__":
     maison, salon, chambre, cuisine = creer_maison_de_test()
     thermostat, chauffage, vannes = initialiser_systeme(maison, [salon, chambre, cuisine])
     
@@ -31,6 +31,3 @@ def main():
 
     # Tracer les résultats
     ihm.tracer(resultats)
-
-if __name__ == "__main__":
-    main()
