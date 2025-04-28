@@ -1,13 +1,11 @@
+# controle.py
+
 class ThermostatCentral:
-    """
-    Classe représentant le thermostat centralisé.
-    Gère la température de référence et les modes de fonctionnement.
-    """
     def __init__(self, mode='eco'):
-        self.mode = mode  # 'eco' ou 'confort'
+        self.mode = mode
         self.consigne_generale = 19.0
-        self.vannes = []  # Liste des vannes connectées
-    
+        self.vannes = []
+
     def ajouter_vanne(self, vanne):
         self.vannes.append(vanne)
 
@@ -15,50 +13,39 @@ class ThermostatCentral:
         self.mode = mode
 
     def controler_chauffage(self):
-        """
-        Détermine si le chauffage doit être déclenché selon le mode.
-        """
-        pass
-
+        return any(vanne.ouverte for vanne in self.vannes)
 
 class VanneThermostatique:
-    """
-    Classe représentant une vanne thermostatique connectée.
-    """
     def __init__(self, piece, consigne=19.0):
         self.piece = piece
         self.consigne = consigne
         self.ouverte = False
-    
+
     def mesurer_temperature(self):
         return self.piece.temperature
 
     def ajuster_etat(self, mode):
-        pass
-
+        temperature = self.mesurer_temperature()
+        if mode == 'eco':
+            self.ouverte = temperature < self.consigne
+        elif mode == 'confort':
+            self.ouverte = temperature < (self.consigne + 1.0)
 
 class Piece:
-    """
-    Classe représentant une pièce de la maison.
-    """
     def __init__(self, nom, volume, inertie_thermique=1.0):
         self.nom = nom
         self.volume = volume
         self.inertie_thermique = inertie_thermique
         self.temperature = 18.0
-        self.perte_temperature = 0.05  # °C perdu par minute sans chauffage
+        self.perte_temperature = 0.05  # °C/minute sans chauffage
 
-    def perdre_chaleur(self):
-        self.temperature -= self.perte_temperature / self.inertie_thermique
+    def perdre_chaleur(self, perte_exterieure):
+        self.temperature -= perte_exterieure / self.inertie_thermique
 
     def chauffer(self, apport):
         self.temperature += apport / (self.volume * self.inertie_thermique)
 
-
 class Chauffage:
-    """
-    Classe représentant le système de chauffage général.
-    """
     def __init__(self):
         self.allume = False
 
@@ -72,15 +59,16 @@ class Chauffage:
         if self.allume:
             piece.chauffer(apport=0.5)
 
-
 class Maison:
     """
     Classe représentant la maison dans son ensemble.
     """
-    def __init__(self):
-        self.pieces = []  # Liste des pièces
-        self.connexions = {}  # Connexions entre pièces
-        self.perte_exterieure = 0.1  # °C/min vers l'extérieur
+    def __init__(self, temperature_moyenne=5.0, amplitude=5.0):
+        self.pieces = []
+        self.connexions = {}
+        self.perte_exterieure = 0.008  # °C/min
+        self.temperature_moyenne = temperature_moyenne
+        self.amplitude = amplitude
 
     def ajouter_piece(self, piece):
         self.pieces.append(piece)
@@ -91,6 +79,15 @@ class Maison:
             self.connexions[piece1].append(piece2)
         if piece2 in self.connexions:
             self.connexions[piece2].append(piece1)
+
+    def temperature_exterieure(self, minute):
+        """
+        Calcule la température extérieure en fonction de l'heure (minute du jour).
+        """
+        periode = 1440  # 24h = 1440 minutes
+        decalage = 240  # Décalage pour que le minimum soit vers 4h du matin
+        angle = 2 * math.pi * (minute - decalage) / periode
+        return self.temperature_moyenne + self.amplitude * math.cos(angle)
 
     def diffusion_chaleur(self):
         variations = {}
@@ -103,6 +100,8 @@ class Maison:
         for piece, variation in variations.items():
             piece.temperature += variation
 
-    def perte_vers_exterieur(self):
+    def perte_vers_exterieur(self, minute):
         for piece in self.pieces:
-            piece.temperature -= self.perte_exterieure / piece.inertie_thermique
+            T_ext = self.temperature_exterieure(minute)
+            perte = self.perte_exterieure * (piece.temperature - T_ext) / piece.inertie_thermique
+            piece.temperature -= perte

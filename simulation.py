@@ -1,58 +1,37 @@
-from controle import ThermostatCentral, VanneThermostatique, Piece, Chauffage, Maison
-import time
+# simulation.py
 
-# 1. Création de la maison
-maison = Maison()
-salon = Piece('Salon', volume=50, inertie_thermique=2.0)
-chambre = Piece('Chambre', volume=30, inertie_thermique=1.5)
-sdb = Piece('Salle de Bain', volume=20, inertie_thermique=1.2)
+from controle import ThermostatCentral, Chauffage, VanneThermostatique
 
-maison.ajouter_piece(salon)
-maison.ajouter_piece(chambre)
-maison.ajouter_piece(sdb)
+def initialiser_systeme(maison):
+    thermostat = ThermostatCentral(mode='eco')
+    chauffage = Chauffage()
 
-maison.connecter_pieces(salon, chambre)
-maison.connecter_pieces(chambre, sdb)
+    for piece in maison.pieces:
+        vanne = VanneThermostatique(piece=piece, consigne=19.0)
+        thermostat.ajouter_vanne(vanne)
 
-# 2. Création du chauffage
-chauffage = Chauffage()
+    return thermostat, chauffage
 
-# 3. Création du thermostat et des vannes
-thermostat = ThermostatCentral(mode='eco')
-v1 = VanneThermostatique(salon, consigne=19)
-v2 = VanneThermostatique(chambre, consigne=20)
-v3 = VanneThermostatique(sdb, consigne=21)
+def lancer_simulation(maison, thermostat, chauffage, duree_minutes=120):
+    historique = {piece.nom: [] for piece in maison.pieces}
 
-thermostat.ajouter_vanne(v1)
-thermostat.ajouter_vanne(v2)
-thermostat.ajouter_vanne(v3)
+    for minute in range(duree_minutes):
+        maison.diffusion_chaleur()
+        maison.perte_vers_exterieur(minute)
 
-# 4. Simulation
-duree_simulation_minutes = 60 * 24  # 24h
-pas_temps_minutes = 1  # 1 minute par itération
-temperature_exterieure = 5.0  # Température extérieure constante
+        for vanne in thermostat.vannes:
+            vanne.ajuster_etat(thermostat.mode)
 
-for minute in range(0, duree_simulation_minutes, pas_temps_minutes):
-    # Contrôle
-    thermostat.controler_chauffage()
-    for vanne in thermostat.vannes:
-        vanne.ajuster_etat(thermostat.mode)
-    
-    # Chauffage
-    for vanne in thermostat.vannes:
-        if vanne.ouverte:
-            chauffage.fournir_chaleur(vanne.piece)
-    
-    # Diffusion de chaleur
-    maison.diffusion_chaleur()
-    
-    # Perte de chaleur
-    maison.perte_vers_exterieur()
+        if thermostat.controler_chauffage():
+            chauffage.allumer()
+        else:
+            chauffage.eteindre()
 
-    # Affichage toutes les heures
-    if minute % 60 == 0:
-        print(f"--- Heure {minute // 60} ---")
+        for vanne in thermostat.vannes:
+            if chauffage.allume and vanne.ouverte:
+                chauffage.fournir_chaleur(vanne.piece)
+
         for piece in maison.pieces:
-            print(f"{piece.nom}: {piece.temperature:.2f}°C")
+            historique[piece.nom].append(piece.temperature)
 
-# Plus tard : sauvegarder dans un fichier texte
+    return historique
