@@ -3,19 +3,28 @@
 import math
 from controle import ThermostatCentral, Chauffage, VanneThermostatique
 
+
 class Piece:
-    def __init__(self, nom, volume, inertie_thermique=1.0):
+    # on considères les pièces comme des ensembles suffisemment petits pour avoir des temps de convection thermique faibles vis-à-vis du temps de chauffage de la pièce
+    # donc on néglige ces temps.
+    def __init__(self, nom, volume, temperature_init):
         self.nom = nom
         self.volume = volume
-        self.inertie_thermique = inertie_thermique
-        self.temperature = 18.0
-        self.perte_temperature = 0.05  # °C/minute sans chauffage
+        self.surface_mur = math.sqrt(volume/2) * 2 #pièces carrées de 2m de hauteur
+# énergie nécessaire pour augmenter la pièce de 1°; capacité thermique massique = 1010 et masse volumique = 1.20
+        self.inertie = 1010 * self.volume * 1.20    
+        self.temperature = temperature_init
+        self.chaleur = (273.15 + self.temperature) * self.inertie # chaleur contenue dans la pièce
 
-    def perdre_chaleur(self, perte_exterieure):
-        self.temperature -= perte_exterieure / self.inertie_thermique
+    def pertes_chaleur(self, pertes):
+        self.chaleur -= pertes # les pertes sont algébriques
 
     def chauffer(self, apport):
-        self.temperature += apport / (self.volume * self.inertie_thermique)
+        apport = abs(apport)
+        self.temperature += apport
+    
+    def maj_temperature(self):
+        self.temperature = self.chaleur/ self.inertie
 
 class Maison:
     """
@@ -24,7 +33,9 @@ class Maison:
     def __init__(self, temperature_moyenne=5.0, amplitude=5.0):
         self.pieces = []
         self.connexions = {}
-        self.perte_exterieure = 0.008  # °C/min
+        self.Rint = 0.048 #(mur de placo de 12 cm d'épaisseur et de conductivité thermique k = 0.25)
+        self.Rext = 0.35 #(exigence de norme d'isolation)
+        # Pour temperature exterieur :
         self.temperature_moyenne = temperature_moyenne
         self.amplitude = amplitude
 
@@ -33,7 +44,7 @@ class Maison:
         self.connexions[piece] = []
 
     def connecter_pieces(self, piece1, piece2):
-        if piece1 in self.connexions:
+        if piece1 in self.connexions: #raise error ?? / try ??
             self.connexions[piece1].append(piece2)
         if piece2 in self.connexions:
             self.connexions[piece2].append(piece1)
@@ -47,22 +58,17 @@ class Maison:
         angle = 2 * math.pi * (minute - decalage) / periode
         return self.temperature_moyenne + self.amplitude * math.cos(angle)
 
-    def diffusion_chaleur(self):
-        variations = {}
-        for piece, voisines in self.connexions.items():
-            for voisine in voisines:
-                delta = (voisine.temperature - piece.temperature) * 0.01
-                variations[piece] = variations.get(piece, 0) + delta
-                variations[voisine] = variations.get(voisine, 0) - delta
+    def echange_chaleur(self, minute):
+        # prise en compte des echanges de chaleur entre les pièces
+        for piece in self.connexions.keys():
+            for voisine in self.connexions(piece):
+                echange = (piece.temperature - voisine.temperature)/(self.Rint/piece.surface_mur) #énergie échange en 1 sec par le mur
+                piece.pertes_chaleur(echange * 60) #pas de temps de 1 min donc 60 sec
+            n = 4 - len(self.connexions(piece))
+            echange = (piece.temperature - self.temperature_exterieur(self, minute)) / (self.Rext/piece.suface_mur)
+            piece.pertes_chaleur(echange * 60)
 
-        for piece, variation in variations.items():
-            piece.temperature += variation
 
-    def perte_vers_exterieur(self, minute):
-        for piece in self.pieces:
-            T_ext = self.temperature_exterieure(minute)
-            perte = self.perte_exterieure * (piece.temperature - T_ext) / piece.inertie_thermique
-            piece.temperature -= perte
 
 def initialiser_systeme(maison, liste_pieces):
     thermostat = ThermostatCentral(mode='eco')
@@ -82,10 +88,8 @@ def lancer_simulation(maison, thermostat, chauffage, duree_minutes=60):
 
     for minute in range(duree_minutes):
         # Diffusion interne
-        maison.diffusion_chaleur()
+        maison.echange_chaleur(minute)
 
-        # Perte vers extérieur
-        maison.perte_vers_exterieur(minute)
 
         # Ajustement des vannes
         for vanne in thermostat.vannes:

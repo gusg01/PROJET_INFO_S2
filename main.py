@@ -27,7 +27,7 @@ if __name__ == "__main__":
     thermostat, chauffage, vannes = initialiser_systeme(maison, [salon, chambre, cuisine])
     
     # Simulation et récupération des températures
-    resultats = lancer_simulation(maison, thermostat, chauffage, duree_minutes=720)  # Simulation sur 12h
+    resultats = lancer_simulation(maison, thermostat, chauffage, duree_minutes=2880)  # Simulation sur 12h
 
     # Tracer les résultats
     ihm.tracer(resultats)
