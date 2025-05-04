@@ -6,12 +6,12 @@ import ihm  # Pour tracer ensuite
 
 def creer_maison_de_test():
     # Création des pièces
-    salon = Piece("Salon", volume=30, inertie_thermique=1.2)
-    chambre = Piece("Chambre", volume=20, inertie_thermique=1.0)
-    cuisine = Piece("Cuisine", volume=15, inertie_thermique=0.8)
+    salon = Piece("Salon", volume=30)
+    chambre = Piece("Chambre", volume=20)
+    cuisine = Piece("Cuisine", volume=15)
 
     # Création de la maison
-    maison = Maison(temperature_moyenne=5.0, amplitude=5.0)
+    maison = Maison(temperature_moyenne=15.0, amplitude=5.0)
     maison.ajouter_piece(salon)
     maison.ajouter_piece(chambre)
     maison.ajouter_piece(cuisine)
@@ -27,7 +27,7 @@ if __name__ == "__main__":
     thermostat, chauffage, vannes = initialiser_systeme(maison, [salon, chambre, cuisine])
     
     # Simulation et récupération des températures
-    resultats = lancer_simulation(maison, thermostat, chauffage, duree_minutes=2880)  # Simulation sur 12h
+    resultats = lancer_simulation(maison, thermostat, chauffage, duree_minutes=5760)  # Simulation sur 4j
 
     # Tracer les résultats
     ihm.tracer(resultats)
