@@ -5,9 +5,21 @@ from controle import ThermostatCentral, Chauffage, VanneThermostatique
 
 
 class Piece:
-    # on considères les pièces comme des ensembles suffisemment petits pour avoir des temps de convection thermique faibles vis-à-vis du temps de chauffage de la pièce
-    # donc on néglige ces temps.
+    '''
+    Défini une pièce, élément élémentaire de la maison en fonction de ses caractéristiques de construction.
+    On considère les temps d'homogénéisation de la température dans la pièces comme très rapides, d'où une température uniforme
+    '''
     def __init__(self, nom, volume, temperature_init = 20):
+        '''
+        Constructeur de la classe.
+        La pièce est considérée carré et de 2m de hauteur.
+
+        inertie : correspond à l'énergie nécessaire pour augmenter la température de la pièce de 1°C. Cette inertie reproduit l'inertie moyenne en France d'une maison bien isolée.
+                C'est-à-dire une perte d'environ 1°C toutes les 5h en absence de chauffage.
+                Les détails du calcul sont dans le rapport.
+        
+        chaleur : correspond à l'énergie complète contenue dans la pièce. Cette valeur est directement modifiée, à chaque pas de temps, en fonction des échanges thermiques.
+        '''
         self.nom = nom
         self.volume = volume
         self.nb_ext = 4
@@ -18,38 +30,63 @@ class Piece:
         self.chaleur = (273.15 + self.temperature) * self.inertie # chaleur contenue dans la pièce
 
     def ajout_voisin(self):
+        '''
+        Permet de modifier l'inertie de la pièce en prenant en compte le nombre de murs en commun de la pièce avec l'extérieur.
+        Les différences de nature des murs d'une pièce jouent sur son inertie.
+        '''
         self.nb_ext -= 1
         self.inertie = 1010 * self.volume * 1.20 + self.nb_ext * 20000 * self.surface_mur + (4-self.nb_ext) * 2550 * self.surface_mur
         self.chaleur = self.chaleur = (273.15 + self.temperature) * self.inertie
  
     def pertes_chaleur(self, pertes):
+        '''
+        setteur permettant de modifier l'énergie contenue dans la pièce
+        '''
         self.chaleur -= pertes # les pertes sont algébriques
 
     def chauffer(self, apport):
+        '''
+        setteur permettant de modifier l'énergie contenue dans la pièce
+        '''
         apport = abs(apport)
         self.temperature += apport
     
     def maj_temperature(self):
+        '''
+        met à jour la température quand il y a un cangement de configuration vis-à-vis des pièces voisines
+        '''
         self.temperature = (self.chaleur/ self.inertie) - 273.15
 
 class Maison:
     """
-    Classe représentant la maison dans son ensemble.
+    Classe représentant la maison dans son ensemble. C'est une composition des pièces et des thermostats.
     """
     def __init__(self, temperature_moyenne=5.0, amplitude=5.0):
+        '''
+        Constructeur de la classe.
+        self.connexions : dictionnaire qui recense toutes les pièces mitoyennes
+        Rint: correspond à la résistance thermique des murs intéireurs de la maison
+        Rext: correspond à la résistance thermique des murs extérieurs de la maison
+        '''
         self.pieces = []
         self.connexions = {}
         self.Rint = 0.16 #(mur de placo de 2* 2cm d'épaisseur)
         self.Rext = 4.17 #(mur de 15 cm de laine de verre et 20 cm de parpaing)
-        # Pour temperature exterieur :
+        # Pour simulation de la temperature exterieur :
         self.temperature_moyenne = temperature_moyenne
         self.amplitude = amplitude
 
     def ajouter_piece(self, piece):
+        '''
+        fonction permettant d'ajouter une pièce à la maison
+        '''
         self.pieces.append(piece)
         self.connexions[piece] = []
 
     def connecter_pieces(self, piece1, piece2):
+        '''
+        fonction permettant de connecter deux pièces déjà existantes de la maison
+        '''
         if piece1 in self.connexions: #raise error ?? / try ??
             self.connexions[piece1].append(piece2)
         if piece2 in self.connexions:
@@ -67,16 +104,23 @@ class Maison:
         return self.temperature_moyenne + self.amplitude * math.cos(angle)
 
     def echange_chaleur(self, minute):
+        '''
+        fonction qui simule les échangent de châleur entre les pièces et avec l'extérieur
+        '''
         # prise en compte des echanges de chaleur entre les pièces
         for piece in self.connexions.keys():
             for voisine in self.connexions[piece]:
                 echange = (piece.temperature - voisine.temperature)/(self.Rint/piece.surface_mur) #énergie échange en 1 sec par le mur
                 piece.pertes_chaleur(echange * 60) # pas de temps de 1 min donc 60 sec
+            # échanges de châleur avec l'extérieur
             n = 4 - len(self.connexions[piece])
             echange = (piece.temperature - self.temperature_exterieure(minute)) / (self.Rext/piece.surface_mur)
             piece.pertes_chaleur(echange * 60)
 
     def maj_temperature(self):
+        '''
+        fonction qui met à jour la température dans toutes les pièces de la maison après que tous les échanges thermiques aient été effectués
+        '''
         for piece in self.connexions.keys():
             piece.maj_temperature()
 
