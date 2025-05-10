@@ -12,8 +12,32 @@ class ThermostatCentral:
     def changer_mode(self, mode):
         self.mode = mode
 
+    def changer_consigne(self, new_consigne):
+        self.consigne_generale = new_consigne
+
     def controler_chauffage(self):
-        return any(vanne.ouverte for vanne in self.vannes)
+        # return any(vanne.ouverte for vanne in self.vannes)
+
+        # Ajustement des vannes
+        for vanne in self.vannes:
+            temperature = vanne.mesurer_temperature()
+            if self.mode == 'eco':
+                if temperature < (vanne.consigne - 1.0):
+                    vanne.ouverte = True
+                else:
+                    vanne.ouverte = False            
+            if self.mode == 'confort':
+                if temperature < (vanne.consigne):
+                    vanne.ouverte = True
+                else:
+                    vanne.ouverte = False
+
+        # Contrôle du chauffage
+        # besoin_chauffage = any(vanne.ouverte for vanne in self.vannes)
+        # if besoin_chauffage:
+        #     chauffage.allumer()
+        # else:
+        #     chauffage.eteindre()
 
 class VanneThermostatique:
     def __init__(self, piece, consigne=19.0):
@@ -24,16 +48,18 @@ class VanneThermostatique:
     def mesurer_temperature(self):
         return self.piece.temperature
 
+    # NOT USED
     def ajuster_etat(self, mode):
         temperature = self.mesurer_temperature()
         if mode == 'eco':
-            self.ouverte = temperature < self.consigne
+            self.ouverte = temperature < (self.consigne - 1.0)
         elif mode == 'confort':
-            self.ouverte = temperature < (self.consigne + 1.0)
+            self.ouverte = temperature < self.consigne
 
 class Chauffage:
     def __init__(self):
-        self.allume = False
+        self.allume = True
+        #PAS D'INERTIE
 
     def allumer(self):
         self.allume = True

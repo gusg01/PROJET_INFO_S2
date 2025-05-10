@@ -49,7 +49,11 @@ class Piece:
         setteur permettant de modifier l'énergie contenue dans la pièce
         '''
         apport = abs(apport)
-        self.temperature += apport
+        # print(self.nom, self.temperature, "1")
+        self.temperature = self.temperature+apport
+        # if self.nom == 'Salon':
+        #     print(self.nom, self.temperature, "2")
+
     
     def maj_temperature(self):
         '''
@@ -125,8 +129,8 @@ class Maison:
             piece.maj_temperature()
 
 
-def initialiser_systeme(maison, liste_pieces):
-    thermostat = ThermostatCentral(mode='eco')
+def initialiser_systeme(maison, liste_pieces, mode):
+    thermostat = ThermostatCentral(mode)
     chauffage = Chauffage()
     vannes = []
 
@@ -136,6 +140,9 @@ def initialiser_systeme(maison, liste_pieces):
         vannes.append(vanne)
     
     return thermostat, chauffage, vannes
+
+
+# Je pense que lancer_simulation decrit en fait le comportement du thermostat
 
 def lancer_simulation(maison, thermostat, chauffage, duree_minutes=60):
     resultats = {vanne.piece.nom: [] for vanne in thermostat.vannes}
@@ -147,32 +154,24 @@ def lancer_simulation(maison, thermostat, chauffage, duree_minutes=60):
         maison.maj_temperature()
 
 
-        # Ajustement des vannes
-        for vanne in thermostat.vannes:
-            temperature = vanne.mesurer_temperature()
-            if thermostat.mode == 'eco':
-                if temperature < vanne.consigne:
-                    vanne.ouverte = True
-                else:
-                    vanne.ouverte = False
+        thermostat.controler_chauffage()
 
-        # Contrôle du chauffage
-        besoin_chauffage = any(vanne.ouverte for vanne in thermostat.vannes)
-        if besoin_chauffage:
-            chauffage.allumer()
-        else:
-            chauffage.eteindre()
 
         # Fournir chaleur
         for vanne in thermostat.vannes:
             if chauffage.allume and vanne.ouverte:
-                chauffage.fournir_chaleur(vanne.piece)
+                # print(vanne.piece.nom)
+                # chauffage.fournir_chaleur(vanne.piece)
+                vanne.piece.chauffer(0.25)
 
         # Stocker résultats
         for vanne in thermostat.vannes:
+            if vanne.ouverte:
+                print(vanne.piece.temperature)
             resultats[vanne.piece.nom].append(vanne.piece.temperature)
         
         # Stocker température extérieure
         resultats["Exterieur"].append(maison.temperature_exterieure(minute))
+        
 
     return resultats
