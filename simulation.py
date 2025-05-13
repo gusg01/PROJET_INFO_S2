@@ -50,7 +50,7 @@ class Piece:
         '''
         apport = abs(apport)
         # print(self.nom, self.temperature, "1")
-        self.temperature = self.temperature+apport
+        self.temperature = self.temperature + apport
         # if self.nom == 'Salon':
         #     print(self.nom, self.temperature, "2")
 
