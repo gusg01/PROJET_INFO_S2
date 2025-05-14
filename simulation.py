@@ -3,13 +3,30 @@
 import math
 from controle import ThermostatCentral, VanneThermostatique
 
+class Object_thermique:
+    def __init__(self, temperature_init = 20):
+        self.inertie = 10000 #juste pour définir la variable
+        self.temperature = temperature_init
+        self.chaleur = (273.15 + self.temperature) * self.inertie
 
-class Piece:
+    def transfer_chaleur(self, pertes):
+        '''
+        setteur permettant de modifier l'énergie contenue dans la pièce
+        '''
+        self.chaleur += pertes # les pertes sont algébriques
+
+    def maj_temperature(self):
+        '''
+        met à jour la température quand il y a un cangement de configuration vis-à-vis des pièces voisines
+        '''
+        self.temperature = (self.chaleur/self.inertie) - 273.15
+
+class Piece(Object_thermique):
     '''
     Défini une pièce, élément élémentaire de la maison en fonction de ses caractéristiques de construction.
     On considère les temps d'homogénéisation de la température dans la pièces comme très rapides, d'où une température uniforme
     '''
-    def __init__(self, nom, volume, temperature_init = 15):
+    def __init__(self, nom, volume, temperature_init = 20):
         '''
         Constructeur de la classe.
         La pièce est considérée carré et de 2m de hauteur.
@@ -20,14 +37,14 @@ class Piece:
         
         chaleur : correspond à l'énergie complète contenue dans la pièce. Cette valeur est directement modifiée, à chaque pas de temps, en fonction des échanges thermiques.
         '''
+        super().__init__(temperature_init)
         self.nom = nom
         self.volume = volume
         self.nb_ext = 4
         self.surface_mur = math.sqrt(volume/2) * 2 #pièces carrées de 2m de hauteur
     # énergie nécessaire pour augmenter la pièce de 1°; capacité thermique massique = 1010 et masse volumique = 1.20 + 10% de la capacité thermique du mur --> reproduction de la réalité européenne de pertes d'une maison
         self.inertie = 1010 * self.volume * 1.20 + self.nb_ext * 20000 * self.surface_mur + (4-self.nb_ext) * 2550 * self.surface_mur
-        self.temperature = temperature_init
-        self.chaleur = (273.15 + self.temperature) * self.inertie # chaleur contenue dans la pièce
+        self.radiateur = None
 
     def ajout_voisin(self):
         '''
@@ -37,26 +54,15 @@ class Piece:
         self.nb_ext -= 1
         self.inertie = 1010 * self.volume * 1.20 + self.nb_ext * 20000 * self.surface_mur + (4-self.nb_ext) * 2550 * self.surface_mur
         self.chaleur = (273.15 + self.temperature) * self.inertie
- 
-    def pertes_chaleur(self, pertes):
-        '''
-        setteur permettant de modifier l'énergie contenue dans la pièce
-        '''
-        self.chaleur -= pertes # les pertes sont algébriques
 
-    def chauffer(self, apport):
-        '''
-        setteur permettant de modifier l'énergie contenue dans la pièce
-        '''
-        apport = abs(apport)
-        self.chaleur = self.chaleur + apport
 
-    
-    def maj_temperature(self):
-        '''
-        met à jour la température quand il y a un cangement de configuration vis-à-vis des pièces voisines
-        '''
-        self.temperature = (self.chaleur/self.inertie) - 273.15 
+class Radiateur(Object_thermique):
+    def __init__(self, surface_echange = 2.5, temperature_init = 20):
+        super().__init__(temperature_init)
+        self.surface_echange = surface_echange
+        self.inertie = 10000
+        self.piece = None
+
 
 class Maison:
     """
@@ -73,6 +79,7 @@ class Maison:
         self.connexions = {}
         self.Rint = 0.16 #(mur de placo de 2* 2cm d'épaisseur)
         self.Rext = 4.17 #(mur de 15 cm de laine de verre et 20 cm de parpaing)
+        self.h_conv = 4 #W.K-1.m-2
         # Pour simulation de la temperature exterieur :
         self.temperature_moyenne = temperature_moyenne
         self.amplitude = amplitude
@@ -82,6 +89,8 @@ class Maison:
         fonction permettant d'ajouter une pièce à la maison
         '''
         self.pieces.append(piece)
+        piece.radiateur = Radiateur()
+        piece.radiateur.piece = piece
         self.connexions[piece] = []
 
     def connecter_pieces(self, piece1, piece2):
@@ -112,11 +121,14 @@ class Maison:
         for piece in self.connexions.keys():
             for voisine in self.connexions[piece]:
                 echange = (piece.temperature - voisine.temperature)/(self.Rint/piece.surface_mur) #énergie échange en 1 sec par le mur
-                piece.pertes_chaleur(echange * 60) # pas de temps de 1 min donc 60 sec
+                piece.transfer_chaleur(-60 * echange) # pas de temps de 1 min donc 60 sec
             # échanges de châleur avec l'extérieur
+            echange = self.h_conv * (piece.temperature - piece.radiateur.temperature) * piece.radiateur.surface_echange
+            piece.transfer_chaleur(-60 * echange)
+            piece.radiateur.transfer_chaleur(60 * echange)
             n = 4 - len(self.connexions[piece])
             echange = (piece.temperature - self.temperature_exterieure(minute)) / (self.Rext/piece.surface_mur)
-            piece.pertes_chaleur(echange * 60)
+            piece.transfer_chaleur(-60 * echange)
 
     def maj_temperature(self):
         '''
@@ -124,19 +136,14 @@ class Maison:
         '''
         for piece in self.connexions.keys():
             piece.maj_temperature()
-
-
-class Radiateur():
-    def __init__(self, boo):
-        self.foo = boo
-
+            piece.radiateur.maj_temperature()
 
 def initialiser_systeme(maison, liste_pieces, mode):
     thermostat = ThermostatCentral(mode)
     vannes = []
 
     for piece in liste_pieces:
-        vanne = VanneThermostatique(piece=piece, consigne=19.0)
+        vanne = VanneThermostatique(piece=piece, radiateur = piece.radiateur, consigne=19.0)
         thermostat.ajouter_vanne(vanne)
         vannes.append(vanne)
     
@@ -152,14 +159,16 @@ def lancer_simulation(maison, thermostat, duree_minutes=60):
     for minute in range(duree_minutes):
         # Diffusion interne
         maison.echange_chaleur(minute)
-        maison.maj_temperature()
 
         thermostat.controler_chauffage()
 
         # Fournir chaleur
         for vanne in thermostat.vannes:
             if vanne.ouverte:
-                vanne.piece.chauffer(500) #en joule           
+                vanne.radiateur.transfer_chaleur(60000) #en joule
+
+        maison.maj_temperature()
+        print(maison.pieces[1].radiateur.temperature)
 
         # Stocker résultats
         for vanne in thermostat.vannes:
@@ -167,6 +176,5 @@ def lancer_simulation(maison, thermostat, duree_minutes=60):
         
         # Stocker température extérieure
         resultats["Exterieur"].append(maison.temperature_exterieure(minute))
-        
 
     return resultats

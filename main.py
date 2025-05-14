@@ -11,7 +11,7 @@ def creer_maison_de_test():
     cuisine = Piece("Cuisine", volume=15)
 
     # Création de la maison
-    maison = Maison(temperature_moyenne=15.0, amplitude=5.0)
+    maison = Maison(temperature_moyenne=5, amplitude=5.0)
     maison.ajouter_piece(salon)
     maison.ajouter_piece(chambre)
     maison.ajouter_piece(cuisine)

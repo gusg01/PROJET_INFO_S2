@@ -39,8 +39,9 @@ class ThermostatCentral:
         #     chauffage.eteindre()
 
 class VanneThermostatique:
-    def __init__(self, piece, consigne=19.0):
+    def __init__(self, piece,radiateur, consigne=19.0):
         self.piece = piece
+        self.radiateur = radiateur
         self.consigne = consigne
         self.ouverte = False
 
