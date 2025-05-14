@@ -49,10 +49,7 @@ class Piece:
         setteur permettant de modifier l'énergie contenue dans la pièce
         '''
         apport = abs(apport)
-        # print(self.nom, self.temperature, "1")
-        self.temperature = self.temperature + apport
-        # if self.nom == 'Salon':
-        #     print(self.nom, self.temperature, "2")
+        self.chaleur = self.chaleur + apport
 
     
     def maj_temperature(self):
@@ -156,28 +153,12 @@ def lancer_simulation(maison, thermostat, chauffage, duree_minutes=60):
         maison.echange_chaleur(minute)
         maison.maj_temperature()
 
-
         thermostat.controler_chauffage()
-
 
         # Fournir chaleur
         for vanne in thermostat.vannes:
             if chauffage.allume and vanne.ouverte:
-                # print(vanne.piece.nom)
-                # chauffage.fournir_chaleur(vanne.piece)
-                vanne.piece.chauffer(0.25)
-
-            # INTERESTING
-            # if(vanne.piece.nom == 'Salon')and(vanne.ouverte!=salon_status):
-            #     print(minute)
-            #     salon_status = not((True)and(salon_status))
-            # -> un seul changement d'etat
-
-            # if(vanne.piece.nom == 'Salon'):
-            #         print(str(vanne.ouverte))
-            # -> ouverte tout le temps apres la premiere ouverture
-                
-                
+                vanne.piece.chauffer(500)                
 
         # Stocker résultats
         for vanne in thermostat.vannes:

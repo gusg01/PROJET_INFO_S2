@@ -3,7 +3,7 @@
 class ThermostatCentral:
     def __init__(self, mode='eco'):
         self.mode = mode
-        self.consigne_generale = 19.0
+        self.consigne_generale = 15.0
         self.vannes = []
 
     def ajouter_vanne(self, vanne):
