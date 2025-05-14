@@ -1,7 +1,7 @@
 # simulation.py
 
 import math
-from controle import ThermostatCentral, Chauffage, VanneThermostatique
+from controle import ThermostatCentral, VanneThermostatique
 
 
 class Piece:
@@ -9,7 +9,7 @@ class Piece:
     Défini une pièce, élément élémentaire de la maison en fonction de ses caractéristiques de construction.
     On considère les temps d'homogénéisation de la température dans la pièces comme très rapides, d'où une température uniforme
     '''
-    def __init__(self, nom, volume, temperature_init = 20):
+    def __init__(self, nom, volume, temperature_init = 15):
         '''
         Constructeur de la classe.
         La pièce est considérée carré et de 2m de hauteur.
@@ -126,9 +126,13 @@ class Maison:
             piece.maj_temperature()
 
 
+class Radiateur():
+    def __init__(self, boo):
+        self.foo = boo
+
+
 def initialiser_systeme(maison, liste_pieces, mode):
     thermostat = ThermostatCentral(mode)
-    chauffage = Chauffage()
     vannes = []
 
     for piece in liste_pieces:
@@ -136,17 +140,14 @@ def initialiser_systeme(maison, liste_pieces, mode):
         thermostat.ajouter_vanne(vanne)
         vannes.append(vanne)
     
-    return thermostat, chauffage, vannes
+    return thermostat, vannes
 
 
 # Je pense que lancer_simulation decrit en fait le comportement du thermostat
 
-def lancer_simulation(maison, thermostat, chauffage, duree_minutes=60):
+def lancer_simulation(maison, thermostat, duree_minutes=60):
     resultats = {vanne.piece.nom: [] for vanne in thermostat.vannes}
     resultats["Exterieur"] = []
-
-    # debug
-    salon_status = False
 
     for minute in range(duree_minutes):
         # Diffusion interne
@@ -157,8 +158,8 @@ def lancer_simulation(maison, thermostat, chauffage, duree_minutes=60):
 
         # Fournir chaleur
         for vanne in thermostat.vannes:
-            if chauffage.allume and vanne.ouverte:
-                vanne.piece.chauffer(500)                
+            if vanne.ouverte:
+                vanne.piece.chauffer(500) #en joule           
 
         # Stocker résultats
         for vanne in thermostat.vannes:

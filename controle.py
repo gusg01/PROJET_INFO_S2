@@ -1,9 +1,9 @@
 # controle.py
 
 class ThermostatCentral:
-    def __init__(self, mode='eco'):
+    def __init__(self, mode='eco', consigne=18.0):
         self.mode = mode
-        self.consigne_generale = 15.0
+        self.consigne_generale = consigne
         self.vannes = []
 
     def ajouter_vanne(self, vanne):
@@ -16,13 +16,12 @@ class ThermostatCentral:
         self.consigne_generale = new_consigne
 
     def controler_chauffage(self):
-        # return any(vanne.ouverte for vanne in self.vannes)
-
-        # Ajustement des vannes
         for vanne in self.vannes:
             temperature = vanne.mesurer_temperature()
             if self.mode == 'eco':
                 if temperature < (vanne.consigne - 1.0):
+                    vanne.ouverte = True
+                elif (temperature < vanne.consigne)and(vanne.ouverte):
                     vanne.ouverte = True
                 else:
                     vanne.ouverte = False            
@@ -56,18 +55,5 @@ class VanneThermostatique:
         elif mode == 'confort':
             self.ouverte = temperature < self.consigne
 
-class Chauffage:
-    def __init__(self):
-        self.allume = True
-        #PAS D'INERTIE
 
-    def allumer(self):
-        self.allume = True
-
-    def eteindre(self):
-        self.allume = False
-
-    def fournir_chaleur(self, piece):
-        if self.allume:
-            piece.chauffer(apport=0.5)
 
