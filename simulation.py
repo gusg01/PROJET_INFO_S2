@@ -36,7 +36,7 @@ class Piece:
         '''
         self.nb_ext -= 1
         self.inertie = 1010 * self.volume * 1.20 + self.nb_ext * 20000 * self.surface_mur + (4-self.nb_ext) * 2550 * self.surface_mur
-        self.chaleur = self.chaleur = (273.15 + self.temperature) * self.inertie
+        self.chaleur = (273.15 + self.temperature) * self.inertie
  
     def pertes_chaleur(self, pertes):
         '''
@@ -59,7 +59,7 @@ class Piece:
         '''
         met à jour la température quand il y a un cangement de configuration vis-à-vis des pièces voisines
         '''
-        self.temperature = (self.chaleur/ self.inertie) - 273.15
+        self.temperature = (self.chaleur/self.inertie) - 273.15 
 
 class Maison:
     """
@@ -148,6 +148,9 @@ def lancer_simulation(maison, thermostat, chauffage, duree_minutes=60):
     resultats = {vanne.piece.nom: [] for vanne in thermostat.vannes}
     resultats["Exterieur"] = []
 
+    # debug
+    salon_status = False
+
     for minute in range(duree_minutes):
         # Diffusion interne
         maison.echange_chaleur(minute)
@@ -164,10 +167,20 @@ def lancer_simulation(maison, thermostat, chauffage, duree_minutes=60):
                 # chauffage.fournir_chaleur(vanne.piece)
                 vanne.piece.chauffer(0.25)
 
+            # INTERESTING
+            # if(vanne.piece.nom == 'Salon')and(vanne.ouverte!=salon_status):
+            #     print(minute)
+            #     salon_status = not((True)and(salon_status))
+            # -> un seul changement d'etat
+
+            # if(vanne.piece.nom == 'Salon'):
+            #         print(str(vanne.ouverte))
+            # -> ouverte tout le temps apres la premiere ouverture
+                
+                
+
         # Stocker résultats
         for vanne in thermostat.vannes:
-            if vanne.ouverte:
-                print(vanne.piece.temperature)
             resultats[vanne.piece.nom].append(vanne.piece.temperature)
         
         # Stocker température extérieure
