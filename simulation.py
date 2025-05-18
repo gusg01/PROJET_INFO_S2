@@ -2,6 +2,7 @@
 
 import math
 from controle import ThermostatCentral, VanneThermostatique
+import numpy as np
 
 class Object_thermique:
     def __init__(self, temperature_init = 20):
@@ -43,7 +44,7 @@ class Piece(Object_thermique):
         self.nb_ext = 4
         self.surface_mur = math.sqrt(volume/2) * 2 #pièces carrées de 2m de hauteur
     # énergie nécessaire pour augmenter la pièce de 1°; capacité thermique massique = 1010 et masse volumique = 1.20 + 10% de la capacité thermique du mur --> reproduction de la réalité européenne de pertes d'une maison
-        self.inertie = 1010 * self.volume * 1.20 + self.nb_ext * 20000 * self.surface_mur + (4-self.nb_ext) * 2550 * self.surface_mur
+        self.inertie = 1010 * self.volume * 1.20 + self.nb_ext * 60000 * self.surface_mur + (4-self.nb_ext) * 7650 * self.surface_mur
         self.radiateur = None
 
     def ajout_voisin(self):
@@ -52,7 +53,7 @@ class Piece(Object_thermique):
         Les différences de nature des murs d'une pièce jouent sur son inertie.
         '''
         self.nb_ext -= 1
-        self.inertie = 1010 * self.volume * 1.20 + self.nb_ext * 20000 * self.surface_mur + (4-self.nb_ext) * 2550 * self.surface_mur
+        self.inertie = 1010 * self.volume * 1.20 + self.nb_ext * 60000 * self.surface_mur + (4-self.nb_ext) * 7650 * self.surface_mur
         self.chaleur = (273.15 + self.temperature) * self.inertie
 
 
@@ -77,6 +78,9 @@ class Maison:
         '''
         self.pieces = []
         self.connexions = {}
+        self.pieces_vect = np.array([])
+        self.calcul_vect = np.array([])
+        self.temperature_vect = np.array([])
         self.Rint = 0.16 #(mur de placo de 2* 2cm d'épaisseur)
         self.Rext = 4.17 #(mur de 15 cm de laine de verre et 20 cm de parpaing)
         self.h_conv = 4 #W.K-1.m-2
@@ -104,6 +108,35 @@ class Maison:
         piece1.ajout_voisin()
         piece2.ajout_voisin()
 
+    def fin_de_modelisation(self):
+        self.pieces_vect = np.array([0] + self.pieces + [i.radiateur for i in self.pieces])
+        self.calcul_vect = np.zeros((len(self.pieces_vect), len(self.pieces_vect)))
+
+        #On place les facteurs pour l'extérieur
+        for k in range(1, len(self.pieces_vect)):
+            if self.pieces_vect[k] in self.pieces :
+                n = 4 - len(self.connexions[self.pieces_vect[k]])
+                int =  n *self.pieces_vect[k].surface_mur / self.Rext
+                self.calcul_vect[0][k] += int
+                self.calcul_vect[k][k] -= int
+
+        #On vient placer les facteurs internes
+        for piece1 in self.connexions.keys():
+            position1 = np.where(self.pieces_vect == piece1)[0][0]
+            for voisine in self.connexions[piece1]:
+                S = (piece1.surface_mur + voisine.surface_mur) / 2
+                position2 = np.where(self.pieces_vect == voisine)[0][0]
+                self.calcul_vect[position2][position1] += S / self.Rint
+                self.calcul_vect[position1][position1] += - S / self.Rint
+            position2 = np.where(self.pieces_vect == piece1.radiateur)[0][0]
+            self.calcul_vect[position2][position1] += self.h_conv * piece1.radiateur.surface_echange
+            self.calcul_vect[position1][position1] += - self.h_conv * piece1.radiateur.surface_echange
+            self.calcul_vect[position2][position2] += - self.h_conv * piece1.radiateur.surface_echange
+            self.calcul_vect[position1][position2] += self.h_conv * piece1.radiateur.surface_echange
+
+        #On crée le vecteur de température inital
+        self.temperature_vect = np.array([self.temperature_exterieure(0)] + [i.temperature for i in self.pieces] + [i.radiateur.temperature for i in self.pieces])
+
     def temperature_exterieure(self, minute):
         """
         Calcule la température extérieure en fonction de l'heure (minute du jour).
@@ -118,25 +151,39 @@ class Maison:
         fonction qui simule les échangent de châleur entre les pièces et avec l'extérieur
         '''
         # prise en compte des echanges de chaleur entre les pièces
-        for piece in self.connexions.keys():
-            for voisine in self.connexions[piece]:
-                echange = (piece.temperature - voisine.temperature)/(self.Rint/piece.surface_mur) #énergie échange en 1 sec par le mur
-                piece.transfer_chaleur(-60 * echange) # pas de temps de 1 min donc 60 sec
-            # échanges de châleur avec l'extérieur
-            echange = self.h_conv * (piece.temperature - piece.radiateur.temperature) * piece.radiateur.surface_echange
-            piece.transfer_chaleur(-60 * echange)
-            piece.radiateur.transfer_chaleur(60 * echange)
-            n = 4 - len(self.connexions[piece])
-            echange = (piece.temperature - self.temperature_exterieure(minute)) / (self.Rext/piece.surface_mur)
-            piece.transfer_chaleur(-60 * echange)
 
-    def maj_temperature(self):
+        # for piece in self.connexions.keys():
+        #     for voisine in self.connexions[piece]:
+        #         echange = (piece.temperature - voisine.temperature)/(self.Rint/piece.surface_mur) #énergie échange en 1 sec par le mur
+        #         piece.transfer_chaleur(-60 * echange) # pas de temps de 1 min donc 60 sec
+        #         print(60 * echange)
+        #     échanges de châleur avec l'extérieur
+        #     echange = self.h_conv * (piece.temperature - piece.radiateur.temperature) * piece.radiateur.surface_echange
+        #     print(60 * echange)
+        #     piece.transfer_chaleur(-60 * echange)
+        #     piece.radiateur.transfer_chaleur(60 * echange)
+        #     n = 4 - len(self.connexions[piece])
+        #     echange = n * (piece.temperature - self.temperature_exterieure(minute)) / (self.Rext/piece.surface_mur)
+        #     print(60 * echange)
+        #     piece.transfer_chaleur(-60 * echange)
+
+        # echange = (self.temperature_vect @ self.calcul_vect) * 60
+        # print(echange)
+        # print(self.temperature_vect)
+        # print(self.calcul_vect)
+        echange = (self.temperature_vect @ self.calcul_vect) * 60
+        for i in range (1, len(self.pieces_vect)):
+            self.pieces_vect[i].transfer_chaleur(echange[i])
+
+    def maj_temperature(self, minute):
         '''
         fonction qui met à jour la température dans toutes les pièces de la maison après que tous les échanges thermiques aient été effectués
         '''
         for piece in self.connexions.keys():
             piece.maj_temperature()
             piece.radiateur.maj_temperature()
+        self.temperature_vect = np.array([self.temperature_exterieure(minute)] + [i.temperature for i in self.pieces] + [i.radiateur.temperature for i in self.pieces])
+
 
 def initialiser_systeme(maison, liste_pieces, mode):
     thermostat = ThermostatCentral(mode)
@@ -167,8 +214,8 @@ def lancer_simulation(maison, thermostat, duree_minutes=60):
             if vanne.ouverte:
                 vanne.radiateur.transfer_chaleur(60000) #en joule
 
-        maison.maj_temperature()
-        print(maison.pieces[1].radiateur.temperature)
+        maison.maj_temperature(minute)
+        #print(maison.pieces[1].radiateur.temperature)
 
         # Stocker résultats
         for vanne in thermostat.vannes:
