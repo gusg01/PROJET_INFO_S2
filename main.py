@@ -34,4 +34,5 @@ if __name__ == "__main__":
     resultats = lancer_simulation(maison, thermostat, duree_minutes=10000)  # Simulation sur 4j
 
     # Tracer les résultats
+    ihm.save_data(resultats)
     ihm.tracer(resultats)
