@@ -4,6 +4,7 @@ from controle import ThermostatCentral, VanneThermostatique
 from simulation import Maison, Piece, initialiser_systeme, lancer_simulation
 import ihm  # Pour tracer ensuite
 import numpy as np
+import time
 
 
 def creer_maison_de_test():
@@ -25,13 +26,15 @@ def creer_maison_de_test():
     return maison, salon, chambre, cuisine
 
 if __name__ == "__main__":
+    temps = time.time()
     maison, salon, chambre, cuisine = creer_maison_de_test()
     maison.fin_de_modelisation()
     thermostat, vannes = initialiser_systeme(maison, [salon, chambre, cuisine], mode='eco')
     
     # Simulation et récupération des températures
     # resultats = lancer_simulation(maison, thermostat, chauffage, duree_minutes=5760)  # Simulation sur 4j
-    resultats = lancer_simulation(maison, thermostat, duree_minutes=10000)  # Simulation sur 4j
+    resultats = lancer_simulation(maison, thermostat, duree_minutes=100000)  # Simulation sur 4j
 
     # Tracer les résultats
-    ihm.tracer(resultats)
+    #ihm.tracer(resultats)
+    print(time.time() - temps)
