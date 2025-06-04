@@ -4,6 +4,37 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
+import sys
+from random import randint
+
+from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtWidgets import (
+    QApplication,
+    QHBoxLayout,
+    QMainWindow,
+    QStackedLayout,
+    QVBoxLayout,
+    QWidget,
+    QCheckBox,
+    QComboBox,
+    QDateEdit,
+    QDateTimeEdit,
+    QDial,
+    QDoubleSpinBox,
+    QFontComboBox,
+    QLCDNumber,
+    QLabel,
+    QLineEdit,
+    QProgressBar,
+    QPushButton,
+    QRadioButton,
+    QSlider,
+    QSpinBox,
+    QTimeEdit,
+)
+
+# from layout_colorwidget import Color
+
 # FILE HANDLING
 
 def save_data(data):
@@ -38,19 +69,16 @@ def save_data(data):
 
 def open_data(file_name):
     file = open(os.path.join(os.path.dirname(__file__), file_name), 'r')
-    n = file.readline()
+    n = int(file.readline())
     pieces = file.readline().split(" ")
     resultats = dict.fromkeys(tuple(pieces), [])
 
     for i in range(n):
-        x = file.readline().split(" ")
-        for i in len(x):
-            resultats[pieces[i]].append(x[i])
+        x = file.readline.split(" ")
+        for j in len(x):
+            resultats[pieces[i]].append(x[j])
     
     return resultats
-
-
-
 
 
 def tracer(resultats):
@@ -69,3 +97,83 @@ def tracer(resultats):
     plt.grid(True)
     plt.tight_layout()
     plt.show()
+
+
+
+
+
+# class AnotherWindow(QWidget):
+#     """
+#     This "window" is a QWidget. If it has no parent,
+#     it will appear as a free-floating window.
+#     """
+
+#     def __init__(self):
+#         super().__init__()
+#         layout = QVBoxLayout()
+#         self.label = QLabel("Another Window % d" % randint(0, 100))
+#         layout.addWidget(self.label)
+#         self.setLayout(layout)
+
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("Mon Thermostat Intelligent")
+        self.setFixedSize(QSize(405, 720))
+
+        pagelayout = QVBoxLayout()
+        self.button_layout = QVBoxLayout()
+        self.stacklayout = QStackedLayout()
+
+
+        pagelayout.addLayout(self.stacklayout)
+        pagelayout.addLayout(self.button_layout)
+
+        btn = QPushButton("MENU")
+        btn.pressed.connect(self.activate_tab_1)
+        self.button_layout.addWidget(btn)
+        widget = QLabel("20°C")
+        widget.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+        self.stacklayout.addWidget(widget)
+
+        # btn = QPushButton("PROGRAMME")
+        # btn.pressed.connect(self.activate_tab_2)
+        # button_layout.addWidget(btn)
+        # self.stacklayout.addWidget(QTimeEdit())
+
+        test = TestLayout(self)
+
+        btn = QPushButton("PARAMETRES")
+        btn.pressed.connect(self.activate_tab_3)
+        self.button_layout.addWidget(btn)
+        self.stacklayout.addWidget(QLabel("PARAMETRES"))
+
+        widget = QWidget()
+        widget.setLayout(pagelayout)
+        self.setCentralWidget(widget)
+    
+    def set_home_layout(self):
+        pass
+
+    def activate_tab_1(self):
+        self.stacklayout.setCurrentIndex(0)
+
+    def activate_tab_2(self):
+        self.stacklayout.setCurrentIndex(1)
+
+    def activate_tab_3(self):
+        self.stacklayout.setCurrentIndex(2)
+
+
+class TestLayout(MainWindow):
+    def __init__(self, master):
+        btn = QPushButton("PROGRAMME")
+        btn.pressed.connect(self.activate_tab_2)
+        self.master.button_layout.addWidget(btn)
+        self.master.stacklayout.addWidget(QTimeEdit())
+        
+
+
+

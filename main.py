@@ -5,6 +5,7 @@ from simulation import Maison, Piece, initialiser_systeme, lancer_simulation
 import ihm  # Pour tracer ensuite
 import numpy as np
 import time
+import sys
 
 
 def creer_maison_de_test():
@@ -33,8 +34,13 @@ if __name__ == "__main__":
     
     # Simulation et récupération des températures
     # resultats = lancer_simulation(maison, thermostat, chauffage, duree_minutes=5760)  # Simulation sur 4j
-    resultats = lancer_simulation(maison, thermostat, duree_minutes=10000)  # Simulation sur 4j
+    resultats = lancer_simulation(maison, thermostat, duree_minutes=1000)  # Simulation sur 4j
 
     # Tracer les résultats
     ihm.save_data(resultats)
-    ihm.tracer(resultats)
+    # ihm.tracer(resultats)
+
+    app = ihm.QApplication(sys.argv)
+    w = ihm.MainWindow()
+    w.show()
+    app.exec()
