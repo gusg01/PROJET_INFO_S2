@@ -43,7 +43,7 @@ def open_data(file_name):
     resultats = dict.fromkeys(tuple(pieces), [])
 
     for i in range(n):
-        x = file.readline.split(" ")
+        x = file.readline().split(" ")
         for i in len(x):
             resultats[pieces[i]].append(x[i])
     
