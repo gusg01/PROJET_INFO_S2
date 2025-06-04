@@ -152,18 +152,6 @@ class Maison:
         '''
         # prise en compte des echanges de chaleur entre les pièces
 
-        # for piece in self.connexions.keys():
-        #     for voisine in self.connexions[piece]:
-        #         echange = (piece.temperature - voisine.temperature)/(self.Rint/piece.surface_mur) #énergie échange en 1 sec par le mur
-        #         piece.transfer_chaleur(-60 * echange) # pas de temps de 1 min donc 60 sec
-        #     #échanges de châleur avec l'extérieur
-        #     echange = self.h_conv * (piece.temperature - piece.radiateur.temperature) * piece.radiateur.surface_echange
-        #     piece.transfer_chaleur(-60 * echange)
-        #     piece.radiateur.transfer_chaleur(60 * echange)
-        #     n = 4 - len(self.connexions[piece])
-        #     echange = n * (piece.temperature - self.temperature_exterieure(minute)) / (self.Rext/piece.surface_mur)
-        #     piece.transfer_chaleur(-60 * echange)
-
         echange = (self.temperature_vect @ self.calcul_vect) * 60
         for i in range (1, len(self.pieces_vect)):
             self.pieces_vect[i].transfer_chaleur(echange[i])
