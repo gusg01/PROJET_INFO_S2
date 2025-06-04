@@ -14,7 +14,7 @@ def creer_maison_de_test():
     cuisine = Piece("Cuisine", volume=15)
 
     # Création de la maison
-    maison = Maison(temperature_moyenne=18, amplitude=7.0)
+    maison = Maison(temperature_moyenne=10, amplitude=3.0)
     maison.ajouter_piece(salon)
     maison.ajouter_piece(chambre)
     maison.ajouter_piece(cuisine)
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     
     # Simulation et récupération des températures
     # resultats = lancer_simulation(maison, thermostat, chauffage, duree_minutes=5760)  # Simulation sur 4j
-    resultats = lancer_simulation(maison, thermostat, duree_minutes=100000)  # Simulation sur 4j
+    resultats = lancer_simulation(maison, thermostat, duree_minutes=10000)  # Simulation sur 4j
 
     # Tracer les résultats
     ihm.save_data(resultats)

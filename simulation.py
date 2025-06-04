@@ -18,7 +18,7 @@ class Object_thermique:
 
     def maj_temperature(self):
         '''
-        met à jour la température quand il y a un cangement de configuration vis-à-vis des pièces voisines
+        met à jour la température quand il y a un changement de configuration vis-à-vis des pièces voisines
         '''
         self.temperature = (self.chaleur/self.inertie) - 273.15
 
@@ -200,7 +200,7 @@ def lancer_simulation(maison, thermostat, duree_minutes=60):
         # Diffusion interne
         maison.echange_chaleur(minute)
 
-        thermostat.controler_chauffage()
+        thermostat.controler_chauffage(minute)
 
         # Fournir chaleur
         for vanne in thermostat.vannes:
