@@ -33,7 +33,7 @@ if __name__ == "__main__":
     
     # Simulation et récupération des températures
     # resultats = lancer_simulation(maison, thermostat, chauffage, duree_minutes=5760)  # Simulation sur 4j
-    resultats = lancer_simulation(maison, thermostat, duree_minutes=100000)  # Simulation sur 4j
+    resultats = lancer_simulation(maison, thermostat, duree_minutes=5000)  # Simulation sur 4j
 
     # Tracer les résultats
     ihm.save_data(resultats)
