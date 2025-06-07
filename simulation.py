@@ -194,7 +194,7 @@ def initialiser_systeme(maison, liste_pieces, mode):
 def lancer_simulation(maison, thermostat, duree_minutes=60):
     resultats = {vanne.piece.nom: [] for vanne in thermostat.vannes}
     resultats["Exterieur"] = []
-    resultats["alpha"] = []
+    # resultats["alpha"] = []
     # resultats["puissance"] = []
 
     for minute in range(duree_minutes):
@@ -218,7 +218,7 @@ def lancer_simulation(maison, thermostat, duree_minutes=60):
         # Stocker température extérieure
         resultats["Exterieur"].append(maison.temperature_exterieure(maison.minute))
 
-        resultats["alpha"] = (thermostat.opti.donner_coeffs(thermostat.vannes[0])[0])
+        # resultats["alpha"] = (thermostat.opti.donner_coeffs(thermostat.vannes[0])[0])
         # temp = (thermostat.opti.donner_puissance(thermostat.vannes[0]))
         # if len(temp) > 0 :
         #     resultats["puissance"].append((thermostat.opti.donner_puissance(thermostat.vannes[0]))[-1])
