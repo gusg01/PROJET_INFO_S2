@@ -98,57 +98,47 @@ def tracer(resultats):
     plt.tight_layout()
     plt.show()
 
-
-
-
-
-# class AnotherWindow(QWidget):
-#     """
-#     This "window" is a QWidget. If it has no parent,
-#     it will appear as a free-floating window.
-#     """
-
-#     def __init__(self):
-#         super().__init__()
-#         layout = QVBoxLayout()
-#         self.label = QLabel("Another Window % d" % randint(0, 100))
-#         layout.addWidget(self.label)
-#         self.setLayout(layout)
-
+# IHM
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-
         self.setWindowTitle("Mon Thermostat Intelligent")
         self.setFixedSize(QSize(405, 720))
 
         pagelayout = QVBoxLayout()
         self.button_layout = QVBoxLayout()
+        self.settings_layout = QHBoxLayout()
         self.stacklayout = QStackedLayout()
 
-
-        pagelayout.addLayout(self.stacklayout)
+        pagelayout.addLayout(self.stacklayout) # MAIN DISPLAY
         pagelayout.addLayout(self.button_layout)
+        pagelayout.addLayout(self.settings_layout)
 
         btn = QPushButton("MENU")
         btn.pressed.connect(self.activate_tab_1)
         self.button_layout.addWidget(btn)
-        widget = QLabel("20°C")
-        widget.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
-        self.stacklayout.addWidget(widget)
+        self.stacklayout.addWidget(MenuWiget().widget)
 
-        # btn = QPushButton("PROGRAMME")
-        # btn.pressed.connect(self.activate_tab_2)
-        # button_layout.addWidget(btn)
-        # self.stacklayout.addWidget(QTimeEdit())
+        btn = QPushButton("SUIVI")
+        btn.pressed.connect(self.activate_tab_2)
+        self.button_layout.addWidget(btn)
+        self.stacklayout.addWidget(SuiviWiget().widget)
 
-        test = TestLayout(self)
-
-        btn = QPushButton("PARAMETRES")
+        btn = QPushButton("PROGRAMME")
         btn.pressed.connect(self.activate_tab_3)
         self.button_layout.addWidget(btn)
-        self.stacklayout.addWidget(QLabel("PARAMETRES"))
+        self.stacklayout.addWidget(ProgWiget().widget)
+
+        btn = QPushButton("PARAMETRES")
+        btn.pressed.connect(self.activate_tab_4)
+        self.settings_layout.addWidget(btn)
+        self.stacklayout.addWidget(ParamWiget().widget)
+
+        btn = QPushButton("RELANCER")
+        btn.pressed.connect(self.activate_tab_5)
+        self.settings_layout.addWidget(btn)
+        self.stacklayout.addWidget(RelanceWiget().widget)
 
         widget = QWidget()
         widget.setLayout(pagelayout)
@@ -166,14 +156,36 @@ class MainWindow(QMainWindow):
     def activate_tab_3(self):
         self.stacklayout.setCurrentIndex(2)
 
+    def activate_tab_4(self):
+        self.stacklayout.setCurrentIndex(3)
 
-class TestLayout(MainWindow):
-    def __init__(self, master):
-        btn = QPushButton("PROGRAMME")
-        btn.pressed.connect(self.activate_tab_2)
-        self.master.button_layout.addWidget(btn)
-        self.master.stacklayout.addWidget(QTimeEdit())
+    def activate_tab_5(self):
+        self.stacklayout.setCurrentIndex(4)
+
+
+class MenuWiget(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.widget = QLabel("20°C")
+        self.widget.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
         
+class SuiviWiget(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.widget = QLabel("test")
 
+class ProgWiget(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.widget = QTimeEdit()
 
+class ParamWiget(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.widget = QLabel("parametres")
+
+class RelanceWiget(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.widget = QLabel("relance")
 
