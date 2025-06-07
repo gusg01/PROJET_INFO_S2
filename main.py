@@ -15,7 +15,7 @@ def creer_maison_de_test():
     cuisine = Piece("Cuisine", volume=15)
 
     # Création de la maison (entitée coordinatrice)
-    maison = Maison(temperature_moyenne=10, amplitude=3.0)
+    maison = Maison(temperature_moyenne=10, amplitude_annuelle=8.0, amplitude=4.0)
     maison.ajouter_piece(salon)
     maison.ajouter_piece(chambre)
     maison.ajouter_piece(cuisine)
@@ -29,11 +29,11 @@ def creer_maison_de_test():
 if __name__ == "__main__":
     maison, salon, chambre, cuisine = creer_maison_de_test()
     maison.fin_de_modelisation()
-    thermostat, vannes = initialiser_systeme(maison, [salon, chambre, cuisine], mode='eco')
+    thermostat, vannes = initialiser_systeme(maison, [salon, chambre, cuisine], mode='eco', consigne = 20)
     
     # Simulation et récupération des températures
-    # resultats = lancer_simulation(maison, thermostat, chauffage, duree_minutes=5760)  # Simulation sur 4j
-    resultats = lancer_simulation(maison, thermostat, duree_minutes=100000)  # Simulation sur 4j
+    resultats = lancer_simulation(maison, thermostat, duree_minutes=10080)  # Simulation sur 7j
+    # resultats = lancer_simulation(maison, thermostat, duree_minutes=525600)  # Simulation sur 1/2 année
 
     # Tracer les résultats
     ihm.save_data(resultats)

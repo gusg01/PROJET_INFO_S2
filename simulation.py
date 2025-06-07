@@ -69,7 +69,7 @@ class Maison:
     """
     Classe représentant la maison dans son ensemble. C'est une composition des pièces et des thermostats.
     """
-    def __init__(self, temperature_moyenne=5.0, amplitude_annuelle = 8.0, amplitude=4.0):
+    def __init__(self, temperature_moyenne=12.0, amplitude_annuelle = 8.0, amplitude=4.0):
         '''
         Constructeur de la classe.
         self.connexions : dictionnaire qui recense toutes les pièces mitoyennes
@@ -146,13 +146,13 @@ class Maison:
 
         # --- Variation annuelle ---
         jour = (minute % 525600) / 1440
-        # décalé pour que le maximum ait lieu vers le 25 juillet (~jour 206)
-        temp_saison = self.temperature_moyenne + self.amplitude_annuelle * math.sin(2 * math.pi * (jour - 21) / 365)
+        # décalé pour que le minimum est lieu vers le 21 janvier (~jour 21)
+        temp_saison = self.temperature_moyenne + self.amplitude_annuelle * math.sin(-2 * math.pi * (jour + 21) / 365)
 
         # --- Variation journalière ---
         min = minute % 1440
         # pic journalier à 15h (900 min), minimum vers 3h (180 min)
-        temp_jour = self.amplitude * math.sin(2 * math.pi * (min - 900) / 1440)
+        temp_jour = self.amplitude * math.sin(-2 * math.pi * (min + 180) / 1440)
 
         return temp_saison + temp_jour
 
@@ -176,12 +176,12 @@ class Maison:
         self.temperature_vect = np.array([self.temperature_exterieure(minute)] + [i.temperature for i in self.pieces] + [i.radiateur.temperature for i in self.pieces])
 
 
-def initialiser_systeme(maison, liste_pieces, mode):
-    thermostat = ThermostatCentral(mode)
+def initialiser_systeme(maison, liste_pieces, mode, consigne = 19):
+    thermostat = ThermostatCentral()
     vannes = []
 
     for piece in liste_pieces:
-        vanne = VanneThermostatique(piece=piece, radiateur = piece.radiateur, consigne=19.0)
+        vanne = VanneThermostatique(piece=piece, radiateur = piece.radiateur, consigne = consigne)
         thermostat.ajouter_vanne(vanne)
         vannes.append(vanne)
     thermostat.fin_de_construction()

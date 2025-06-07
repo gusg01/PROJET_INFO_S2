@@ -3,7 +3,7 @@ import numpy as np
 import math
 import random
 
-def generate_heating_schedule() -> np.ndarray:
+def generate_heating_schedule(nb_vannes = 3) -> np.ndarray:
     """
     Renvoie un tableau NumPy de forme (7, 48, 3) où :
       • 1ʳᵉ dim.  (0-6)  = jours de la semaine (0=lundi … 6=dimanche)
@@ -16,7 +16,7 @@ def generate_heating_schedule() -> np.ndarray:
       • Tous les jours  :  07 h 00 → 10 h 00  et  19 h 00 → 21 h 00
       • Week-end (sam, dim) :  créneau supplémentaire 12 h 00 → 17 h 00
     """
-    schedule = np.zeros((7, 48, 3), dtype=int)
+    schedule = np.zeros((7, 48, nb_vannes), dtype=int)
 
     # Créneaux communs (en heures)
     common_slots = [(7, 10), (19, 21)]
@@ -41,11 +41,8 @@ def generate_heating_schedule() -> np.ndarray:
     return schedule
 
 class ThermostatCentral:
-    def __init__(self, mode='eco', heure_consigne = [], debut = 7, fin = 18, consigne=18.0):
-        self.consigne_generale = consigne
+    def __init__(self,  heure_consigne = []):
         self.heure_consigne = heure_consigne
-        self.heure_debut = debut
-        self.heure_fin = fin
         self.vannes = []
 
     def ajouter_vanne(self, vanne):
@@ -54,26 +51,20 @@ class ThermostatCentral:
             self.heure_consigne = np.zeros((7, 48, 1))
         else :
             self.heure_consigne = np.concatenate((self.heure_consigne, np.zeros((7, 48, 1))), axis=2)
-        self.heure_consigne = generate_heating_schedule()
+        self.heure_consigne = generate_heating_schedule(len(self.vannes))
 
-    def changer_consigne(self, new_consigne):
-        self.consigne_generale = new_consigne
-
-    def changer_heures_consigne(self, debut, fin):
-        self.heure_debut = debut
-        self.heure_fin = fin
-
-    def changer_heure_consigne(self, heures):
+    def changer_heure_consigne(self, vanne, heures):
         debut, fin, date = heures
         dates = np.array(["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche", "tous_les_jours"])
         nbdate = np.where(dates == date)[0][0]
+        nbvanne = np.where(np.array(self.vannes) == vanne)[0][0]
         if nbdate < 7 :
             for k in range(debut * 2, fin * 2):
-                self.heure_consigne[0, k] = True
+                self.heure_consigne[nbdate, k, nbvanne] = 1 - self.heure_consigne[nbdate, k, nbvanne]
         else :
             for k in range(debut * 2, fin * 2):
                 for i in range(0, 7):
-                    self.heure_consigne[i, k] = True
+                    self.heure_consigne[i, k, nbvanne] = 1 - self.heure_consigne[i, k, nbvanne]
 
     def fin_de_construction(self):
         self.opti = Optimisation(self.vannes)
@@ -122,7 +113,7 @@ class VanneThermostatique:
         self.mode = mode # eco ou confort
         self.alpha = 1
         self.beta = 1
-        self.puissance_max = 1000
+        self.puissance_max = 100 * (self.piece.volume/2)
 
     def mesurer_temperature(self):
         return self.piece.temperature
@@ -161,59 +152,68 @@ class Optimisation:
             return puissance + (consigne - Tfinal) * 10000000000
 
     def optimiser(self, vanne, puissance, Tfinal):
-        nb = np.where(self.vannes == vanne)[0][0]
-        if len(self.puissances[nb]) > 0 :
-            last_cout = self.cout(self.puissances[nb][-1], self.Tfin[nb][-1], vanne.consigne)
-            new_cout = self.cout(puissance, Tfinal, vanne.consigne)
-            self.puissances[nb].append(puissance)
-            self.Tfin[nb].append(Tfinal)
-            if last_cout > new_cout :
-                i, j = random.randint(0, 1), random.randint(0,1)
-                self.coeffs_alpha[nb].append(vanne.alpha)
-                self.coeffs_beta[nb].append(vanne.beta)
-                if i :
-                    if j:
-                        vanne.alpha = vanne.alpha * 0.95
-                    else :
-                        if vanne.alpha * 1.05 <= 1:
-                            vanne.alpha = vanne.alpha * 1.05
-                        else :
-                            vanne.alpha = 1
-                else :
-                    if j:
-                        vanne.beta = vanne.beta * 0.95
-                    else :
-                        vanne.beta = vanne.beta * 1.05
-            else:
-                i, j = random.randint(0, 1), random.randint(0,1)
-                self.coeffs_alpha[nb].append(vanne.alpha)
-                self.coeffs_beta[nb].append(vanne.beta)
-                if i :
-                    if j:
-                        vanne.alpha = self.coeffs_alpha[nb][-2] * 0.95
-                    else :
-                        if self.coeffs_alpha[nb][-2]  * 1.05 <= 1 :
-                            vanne.alpha = self.coeffs_alpha[nb][-2]  * 1.05
-                        else :
-                            vanne.alpha = 1
-                else :
-                    if j:
-                        vanne.beta = self.coeffs_beta[nb][-2]  * 0.95
-                    else :
-                        vanne.beta = self.coeffs_beta[nb][-2]  * 1.05
-        else :
+        if vanne.mode == 'confort':
+            nb = np.where(self.vannes == vanne)[0][0]
             self.puissances[nb].append(puissance)
             self.Tfin[nb].append(Tfinal)
             self.coeffs_alpha[nb].append(vanne.alpha)
             self.coeffs_beta[nb].append(vanne.beta)
-            i, j = random.randint(0, 1), random.randint(0,1)
-            if i :
-                if j:
-                    vanne.alpha = 0.95
-                else :
-                    vanne.alpha = 1
+            vanne.alpha = 1
+            vanne.beta = 1
+        else :
+            nb = np.where(self.vannes == vanne)[0][0]
+            if len(self.puissances[nb]) > 0 :
+                last_cout = self.cout(self.puissances[nb][-1], self.Tfin[nb][-1], vanne.consigne)
+                new_cout = self.cout(puissance, Tfinal, vanne.consigne)
+                self.puissances[nb].append(puissance)
+                self.Tfin[nb].append(Tfinal)
+                if last_cout > new_cout :
+                    i, j = random.randint(0, 1), random.randint(0,1)
+                    self.coeffs_alpha[nb].append(vanne.alpha)
+                    self.coeffs_beta[nb].append(vanne.beta)
+                    if i :
+                        if j:
+                            vanne.alpha = vanne.alpha * 0.95
+                        else :
+                            if vanne.alpha * 1.05 <= 1:
+                                vanne.alpha = vanne.alpha * 1.05
+                            else :
+                                vanne.alpha = 1
+                    else :
+                        if j:
+                            vanne.beta = vanne.beta * 0.95
+                        else :
+                            vanne.beta = vanne.beta * 1.05
+                else:
+                    i, j = random.randint(0, 1), random.randint(0,1)
+                    self.coeffs_alpha[nb].append(vanne.alpha)
+                    self.coeffs_beta[nb].append(vanne.beta)
+                    if i :
+                        if j:
+                            vanne.alpha = self.coeffs_alpha[nb][-2] * 0.95
+                        else :
+                            if self.coeffs_alpha[nb][-2]  * 1.05 <= 1 :
+                                vanne.alpha = self.coeffs_alpha[nb][-2]  * 1.05
+                            else :
+                                vanne.alpha = 1
+                    else :
+                        if j:
+                            vanne.beta = self.coeffs_beta[nb][-2]  * 0.95
+                        else :
+                            vanne.beta = self.coeffs_beta[nb][-2]  * 1.05
             else :
-                if j:
-                    vanne.beta = 0.95
+                self.puissances[nb].append(puissance)
+                self.Tfin[nb].append(Tfinal)
+                self.coeffs_alpha[nb].append(vanne.alpha)
+                self.coeffs_beta[nb].append(vanne.beta)
+                i, j = random.randint(0, 1), random.randint(0,1)
+                if i :
+                    if j:
+                        vanne.alpha = 0.95
+                    else :
+                        vanne.alpha = 1
                 else :
-                    vanne.beta = 1.05
+                    if j:
+                        vanne.beta = 0.95
+                    else :
+                        vanne.beta = 1.05
