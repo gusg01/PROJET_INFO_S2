@@ -7,13 +7,16 @@ import os
 import sys
 from random import randint
 
-from PyQt5.QtCore import Qt, QSize
+import pyqtgraph as pg
+
+from PyQt5.QtCore import Qt, QSize, QTimer
 from PyQt5.QtWidgets import (
     QApplication,
     QHBoxLayout,
     QMainWindow,
     QStackedLayout,
     QVBoxLayout,
+    QGridLayout,
     QWidget,
     QCheckBox,
     QComboBox,
@@ -31,9 +34,8 @@ from PyQt5.QtWidgets import (
     QSlider,
     QSpinBox,
     QTimeEdit,
+    QCalendarWidget
 )
-
-# from layout_colorwidget import Color
 
 # FILE HANDLING
 
@@ -98,10 +100,17 @@ def tracer(resultats):
     plt.tight_layout()
     plt.show()
 
+
+
+
+
+
+
+
 # IHM
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, data):
         super().__init__()
         self.setWindowTitle("Mon Thermostat Intelligent")
         self.setFixedSize(QSize(405, 720))
@@ -118,24 +127,24 @@ class MainWindow(QMainWindow):
         btn = QPushButton("MENU")
         btn.pressed.connect(self.activate_tab_1)
         self.button_layout.addWidget(btn)
-        self.stacklayout.addWidget(MenuWiget().widget)
+        self.stacklayout.addWidget(MenuWiget())
 
         btn = QPushButton("SUIVI")
         btn.pressed.connect(self.activate_tab_2)
         self.button_layout.addWidget(btn)
-        self.stacklayout.addWidget(SuiviWiget().widget)
+        self.stacklayout.addWidget(SuiviWiget(data).plot_graph)
 
         btn = QPushButton("PROGRAMME")
         btn.pressed.connect(self.activate_tab_3)
         self.button_layout.addWidget(btn)
-        self.stacklayout.addWidget(ProgWiget().widget)
+        self.stacklayout.addWidget(ProgWiget())
 
-        btn = QPushButton("PARAMETRES")
+        btn = QPushButton("[PARAMETRES]")
         btn.pressed.connect(self.activate_tab_4)
         self.settings_layout.addWidget(btn)
         self.stacklayout.addWidget(ParamWiget().widget)
 
-        btn = QPushButton("RELANCER")
+        btn = QPushButton("[RELANCER]")
         btn.pressed.connect(self.activate_tab_5)
         self.settings_layout.addWidget(btn)
         self.stacklayout.addWidget(RelanceWiget().widget)
@@ -166,18 +175,79 @@ class MainWindow(QMainWindow):
 class MenuWiget(QWidget):
     def __init__(self):
         super().__init__()
-        self.widget = QLabel("20°C")
-        self.widget.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+        layout = QVBoxLayout()
+        self.dial = QDial()
+        self.dial.setRange(0, 300)
+        self.dial.setSingleStep(1)
+        self.dial.setValue(200)
+        self.dial.sliderMoved.connect(self.slider_position)
+        self.bar = QLabel("20.0°C")
+        self.bar.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+        layout.addWidget(self.bar)
+        layout.addWidget(self.dial)
+
+        self.setLayout(layout)
+
+    def slider_position(self, p):
+        self.bar.setText(f"{str(p/10.0)}°C")
         
 class SuiviWiget(QWidget):
-    def __init__(self):
+    def __init__(self, resultats):
         super().__init__()
-        self.widget = QLabel("test")
+        # self.widget = QLabel("test")
+        # Temperature vs time plot
+        n = len(resultats[list(resultats.keys())[0]])
+
+        self.plot_graph = pg.PlotWidget()
+        self.plot_graph.setBackground("w")
+        self.plot_graph.setTitle("Temperature vs Time", color="b", size="20pt")
+        styles = {"color": "red", "font-size": "18px"}
+        self.plot_graph.setLabel("left", "Temperature (°C)", **styles)
+        self.plot_graph.setLabel("bottom", "Time (min)", **styles)
+        self.plot_graph.addLegend()
+        self.plot_graph.showGrid(x=True, y=True)
+        self.plot_graph.setXRange(1, n)
+        self.plot_graph.setYRange(0, 30)
+
+        # pen = pg.mkPen(color=(255, 0, 0))
+        # self.plot_line(
+        #     "Temperature Sensor 1", time, temperature_1, pen, "b"
+        # )
+        #len(resultats[list(resultats.keys())[0]])
+        time = [i for i in range(n)] 
+        couleurs = ['r', 'b', 'g', 'k']
+
+        for idx, (nom_piece, temperatures) in enumerate(resultats.items()):
+            pen = pg.mkPen(color=(255, 0, 0))
+            self.plot_line(nom_piece, time, temperatures, pen, couleurs[idx % len(couleurs)])
+
+    def plot_line(self, name, time, temperature, pen, brush):
+        self.plot_graph.plot(
+            time,
+            temperature,
+            name=name,
+            pen=pen,
+            symbol="+",
+            symbolSize=5,
+            symbolBrush=brush,
+        )
+
 
 class ProgWiget(QWidget):
     def __init__(self):
         super().__init__()
-        self.widget = QTimeEdit()
+        layout = QVBoxLayout()
+        self.calendar = QCalendarWidget()
+        layout.addWidget(self.calendar)
+        self.grid = QGridLayout()
+        self.grid.addWidget(QPushButton("A"), 0, 0)
+        self.grid.addWidget(QPushButton("B"), 0, 1)
+        self.grid.addWidget(QPushButton("C"), 1, 0)
+        self.grid.addWidget(QPushButton("D"), 1, 1)
+
+        layout.addLayout(self.grid)
+
+        self.setLayout(layout)
 
 class ParamWiget(QWidget):
     def __init__(self):
