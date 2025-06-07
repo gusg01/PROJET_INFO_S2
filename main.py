@@ -40,6 +40,6 @@ if __name__ == "__main__":
     ihm.tracer(resultats)
 
     app = ihm.QApplication(sys.argv)
-    w = ihm.MainWindow()
+    w = ihm.MainWindow(resultats)
     w.show()
     app.exec()
