@@ -69,7 +69,7 @@ class Maison:
     """
     Classe représentant la maison dans son ensemble. C'est une composition des pièces et des thermostats.
     """
-    def __init__(self, temperature_moyenne=5.0, amplitude=5.0):
+    def __init__(self, temperature_moyenne=5.0, amplitude_annuelle = 8.0, amplitude=4.0):
         '''
         Constructeur de la classe.
         self.connexions : dictionnaire qui recense toutes les pièces mitoyennes
@@ -86,7 +86,9 @@ class Maison:
         self.h_conv = 4 #W.K-1.m-2
         # Pour simulation de la temperature exterieur :
         self.temperature_moyenne = temperature_moyenne
+        self.amplitude_annuelle = amplitude_annuelle
         self.amplitude = amplitude
+        self.minute = 0
 
     def ajouter_piece(self, piece):
         '''
@@ -141,10 +143,18 @@ class Maison:
         """
         Calcule la température extérieure en fonction de l'heure (minute du jour).
         """
-        periode = 1440  # 24h = 1440 minutes
-        decalage = 960  # Décalage pour que le minimum soit vers 4h du matin
-        angle = 2 * math.pi * (minute - decalage) / periode
-        return self.temperature_moyenne + self.amplitude * math.cos(angle)
+
+        # --- Variation annuelle ---
+        jour = (minute % 525600) / 1440
+        # décalé pour que le maximum ait lieu vers le 25 juillet (~jour 206)
+        temp_saison = self.temperature_moyenne + self.amplitude_annuelle * math.sin(2 * math.pi * (jour - 21) / 365)
+
+        # --- Variation journalière ---
+        min = minute % 1440
+        # pic journalier à 15h (900 min), minimum vers 3h (180 min)
+        temp_jour = self.amplitude * math.sin(2 * math.pi * (min - 900) / 1440)
+
+        return temp_saison + temp_jour
 
     def echange_chaleur(self, minute):
         '''
@@ -174,7 +184,8 @@ def initialiser_systeme(maison, liste_pieces, mode):
         vanne = VanneThermostatique(piece=piece, radiateur = piece.radiateur, consigne=19.0)
         thermostat.ajouter_vanne(vanne)
         vannes.append(vanne)
-    
+    thermostat.fin_de_construction()
+
     return thermostat, vannes
 
 
@@ -183,26 +194,34 @@ def initialiser_systeme(maison, liste_pieces, mode):
 def lancer_simulation(maison, thermostat, duree_minutes=60):
     resultats = {vanne.piece.nom: [] for vanne in thermostat.vannes}
     resultats["Exterieur"] = []
+    resultats["alpha"] = []
+    # resultats["puissance"] = []
 
     for minute in range(duree_minutes):
         # Diffusion interne
-        maison.echange_chaleur(minute)
-
-        thermostat.controler_chauffage(minute)
+        maison.minute += 1
+        maison.echange_chaleur(maison.minute)
 
         # Fournir chaleur
+        thermostat.controler_chauffage(maison.minute)
         for vanne in thermostat.vannes:
             if vanne.ouverte:
-                vanne.radiateur.transfer_chaleur(60000) #en joule
+                vanne.radiateur.transfer_chaleur(vanne.chauffer() * 60) #en joule
 
-        maison.maj_temperature(minute)
+        maison.maj_temperature(maison.minute)
         #print(maison.pieces[1].radiateur.temperature)
 
         # Stocker résultats
         for vanne in thermostat.vannes:
             resultats[vanne.piece.nom].append(vanne.piece.temperature)
-        
-        # Stocker température extérieure
-        resultats["Exterieur"].append(maison.temperature_exterieure(minute))
 
+        # Stocker température extérieure
+        resultats["Exterieur"].append(maison.temperature_exterieure(maison.minute))
+
+        resultats["alpha"] = (thermostat.opti.donner_coeffs(thermostat.vannes[0])[0])
+        # temp = (thermostat.opti.donner_puissance(thermostat.vannes[0]))
+        # if len(temp) > 0 :
+        #     resultats["puissance"].append((thermostat.opti.donner_puissance(thermostat.vannes[0]))[-1])
+        # else :
+        #     resultats["puissance"].append(0)
     return resultats

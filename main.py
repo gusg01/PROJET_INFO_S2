@@ -14,33 +14,32 @@ def creer_maison_de_test():
     chambre = Piece("Chambre", volume=30)
     cuisine = Piece("Cuisine", volume=15)
 
-    # Création de la maison
+    # Création de la maison (entitée coordinatrice)
     maison = Maison(temperature_moyenne=10, amplitude=3.0)
     maison.ajouter_piece(salon)
     maison.ajouter_piece(chambre)
     maison.ajouter_piece(cuisine)
 
-    # Connexions physiques entre pièces
+    # Connexions physiques entre pièces (espace de simulation)
     maison.connecter_pieces(salon, chambre)
     maison.connecter_pieces(salon, cuisine)
 
     return maison, salon, chambre, cuisine
 
 if __name__ == "__main__":
-    temps = time.time()
     maison, salon, chambre, cuisine = creer_maison_de_test()
     maison.fin_de_modelisation()
     thermostat, vannes = initialiser_systeme(maison, [salon, chambre, cuisine], mode='eco')
     
     # Simulation et récupération des températures
     # resultats = lancer_simulation(maison, thermostat, chauffage, duree_minutes=5760)  # Simulation sur 4j
-    resultats = lancer_simulation(maison, thermostat, duree_minutes=1000)  # Simulation sur 4j
+    resultats = lancer_simulation(maison, thermostat, duree_minutes=100000)  # Simulation sur 4j
 
     # Tracer les résultats
     ihm.save_data(resultats)
-    # ihm.tracer(resultats)
+    ihm.tracer(resultats)
 
-    app = ihm.QApplication(sys.argv)
-    w = ihm.MainWindow()
-    w.show()
-    app.exec()
+#    app = ihm.QApplication(sys.argv)
+#    w = ihm.MainWindow()
+#    w.show()
+#    app.exec()

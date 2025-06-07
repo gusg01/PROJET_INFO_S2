@@ -74,7 +74,7 @@ def open_data(file_name):
     resultats = dict.fromkeys(tuple(pieces), [])
 
     for i in range(n):
-        x = file.readline.split(" ")
+        x = file.readline().split(" ")
         for j in len(x):
             resultats[pieces[i]].append(x[j])
     
@@ -174,6 +174,3 @@ class TestLayout(MainWindow):
         self.master.button_layout.addWidget(btn)
         self.master.stacklayout.addWidget(QTimeEdit())
         
-
-
-
