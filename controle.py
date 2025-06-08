@@ -53,29 +53,18 @@ class ThermostatCentral:
             self.heure_consigne = np.concatenate((self.heure_consigne, np.zeros((7, 48, 1))), axis=2)
         self.heure_consigne = generate_heating_schedule(len(self.vannes))
 
-    def ajouter_heure_consigne(self, date, debut, fin):
+    def changer_heure_consigne(self, date, debut, fin, val):
         dates = np.array(["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche", "Tous_les_jours"])
         nbdate = np.where(dates == date)[0][0]
         for vanne in range(len(self.vannes)):
             if nbdate < 7 :
                 for k in range(debut, fin):
-                    self.heure_consigne[nbdate, k, vanne] = 1
+                    self.heure_consigne[nbdate, k, vanne] = val
             else :
                 for k in range(debut, fin):
                     for i in range(0, 7):
-                        self.heure_consigne[i, k, vanne] = 1
+                        self.heure_consigne[i, k, vanne] = val
 
-    def supprimer_heure_consigne(self, date, debut, fin):
-        dates = np.array(["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche", "Tous_les_jours"])
-        nbdate = np.where(dates == date)[0][0]
-        for vanne in range(len(self.vannes)):
-            if nbdate < 7 :
-                for k in range(debut, fin):
-                    self.heure_consigne[nbdate, k, vanne] = 0
-            else :
-                for k in range(debut, fin):
-                    for i in range(0, 7):
-                        self.heure_consigne[i, k, vanne] = 0
 
     def fin_de_construction(self):
         self.opti = Optimisation(self.vannes)

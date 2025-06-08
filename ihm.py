@@ -214,13 +214,13 @@ class MainWindow(QMainWindow):
         j = self.prog.jour.currentText()
         h1 = 2*self.prog.h1.time().hour() + self.prog.h1.time().minute()//30 
         h2 = 2*self.prog.h2.time().hour() + self.prog.h2.time().minute()//30
-        self.thermostat.ajouter_heure_consigne(j, h1, h2);
+        self.thermostat.changer_heure_consigne(j, h1, h2, 1);
 
     def supprimer_heure_consigne(self):
         j = self.prog.jour.currentText()
         h1 = 2*self.prog.h1.time().hour() + self.prog.h1.time().minute()//30 
         h2 = 2*self.prog.h2.time().hour() + self.prog.h2.time().minute()//30
-        self.thermostat.supprimer_heure_consigne(j, h1, h2);
+        self.thermostat.changer_heure_consigne(j, h1, h2, 0);
 
     def creer_maison_de_test(self):
         # Création des pièces
