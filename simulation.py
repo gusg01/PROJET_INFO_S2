@@ -162,7 +162,7 @@ class Maison:
         '''
         # prise en compte des echanges de chaleur entre les pièces
 
-        echange = (self.temperature_vect @ self.calcul_vect) * 60
+        echange = (self.temperature_vect @ self.calcul_vect) * 60 #puissance pendant 60 secondes
         for i in range (1, len(self.pieces_vect)):
             self.pieces_vect[i].transfer_chaleur(echange[i])
 
@@ -173,7 +173,7 @@ class Maison:
         for piece in self.connexions.keys():
             piece.maj_temperature()
             piece.radiateur.maj_temperature()
-        self.temperature_vect = np.array([self.temperature_exterieure(minute)] + [i.temperature for i in self.pieces] + [i.radiateur.temperature for i in self.pieces])
+        self.temperature_vect = np.array([self.temperature_exterieure(minute + 1)] + [i.temperature for i in self.pieces] + [i.radiateur.temperature for i in self.pieces])
 
 
 def initialiser_systeme(liste_pieces, consigne = 19):

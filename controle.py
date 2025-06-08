@@ -3,7 +3,7 @@ import numpy as np
 import math
 import random
 
-def generate_heating_schedule(nb_vannes = 3) -> np.ndarray:
+def generate_heating_schedule(nb_vannes = 3):
     """
     Renvoie un tableau NumPy de forme (7, 48, 3) où :
       • 1ʳᵉ dim.  (0-6)  = jours de la semaine (0=lundi … 6=dimanche)
