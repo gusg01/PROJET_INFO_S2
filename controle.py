@@ -51,8 +51,7 @@ class ThermostatCentral:
             self.heure_consigne = np.zeros((7, 48, 1))
         else :
             self.heure_consigne = np.concatenate((self.heure_consigne, np.zeros((7, 48, 1))), axis=2)
-        if self.heure_consigne == []:
-            self.heure_consigne = generate_heating_schedule(len(self.vannes))
+        self.heure_consigne = generate_heating_schedule(len(self.vannes))
 
     def ajouter_heure_consigne(self, date, debut, fin):
         dates = np.array(["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche", "Tous_les_jours"])
