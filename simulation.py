@@ -226,7 +226,7 @@ def lancer_simulation(maison, thermostat, duree_minutes=1440):
     resultats = {vanne.piece.nom: [] for vanne in thermostat.vannes}
     resultats["Exterieur"] = []
     # resultats["alpha"] = []
-    resultats["puissance"] = []
+    # resultats["puissance"] = []
     energie = 0
 
     for minute in range(duree_minutes):
