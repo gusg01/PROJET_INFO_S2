@@ -1,4 +1,10 @@
-# ihm.py
+"""
+auteur : GOMILA Gustave (FISE27)
+date : 08-05-2025
+description :
+    Module contenant les fonctions de gestion de donnees ainsi que l'IHM
+    L'IHM est codee a partir de PyQt5 dans le format d'une application de smartphone
+"""
 
 import numpy as np
 import matplotlib.pyplot as plt

@@ -1,10 +1,19 @@
-# controle.py
+"""
+auteurs : BEROUD Sebastien (FISE27), GOMILA Gustave (FISE27)
+date : 08-05-2025
+description :
+    Module decrivant le comportement du thermostat
+    Le termostat de ThermostatCentral controle les vannes VanneThermostatique 
+    et applique l'algorithme defini par Optimisation 
+"""
+
 import numpy as np
 import math
 import random
 
 def generate_heating_schedule(nb_vannes = 3):
     """
+    auteurs : BEROUD Sebastien (FISE27)
     Renvoie un tableau NumPy de forme (7, 48, 3) où :
       • 1ʳᵉ dim.  (0-6)  = jours de la semaine (0=lundi … 6=dimanche)
       • 2ᵉ dim.  (0-47) = tranches de 30 min (0 = 00h00, 1 = 00h30, ...)
@@ -41,6 +50,9 @@ def generate_heating_schedule(nb_vannes = 3):
     return schedule
 
 class ThermostatCentral:
+    """
+    auteur : GOMILA Gustave (FISE27)
+    """
     def __init__(self,  heure_consigne = []):
         self.heure_consigne = heure_consigne
         self.vannes = []
@@ -109,6 +121,9 @@ class ThermostatCentral:
             vanne.mode = mode
 
 class VanneThermostatique:
+    """
+    auteur : GOMILA Gustave (FISE27)
+    """
     def __init__(self, piece, radiateur, mode = 'eco', consigne=19.0):
         self.piece = piece
         self.radiateur = radiateur
@@ -138,6 +153,9 @@ class VanneThermostatique:
                 return puissance
 
 class Optimisation:
+    """
+    auteur : BEROUD Sebastien (FISE27)
+    """
     def __init__(self, vannes):
         self.vannes = np.array(vannes)
         self.coeffs_alpha = [[] for i in range(len(self.vannes))]
