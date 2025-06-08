@@ -255,5 +255,5 @@ def lancer_simulation(maison, thermostat, duree_minutes=1440):
         resultats["Exterieur"].append(maison.temperature_exterieure(maison.minute))
 
         # resultats["alpha"] = (thermostat.opti.donner_coeffs(thermostat.vannes[0])[0])
-        resultats["puissance"].append(energie/2000)
+        # resultats["puissance"].append(energie/2000)
     return resultats

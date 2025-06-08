@@ -184,7 +184,7 @@ class Optimisation:
 
     def optimiser(self, vanne, puissance, Tfinal):
         '''
-        fonction qui permet en fonction des coût des deux deriners cycles de chauffage de modifier les paramètres
+        fonction qui permet en fonction des coût des deux derniers cycles de chauffage de modifier les paramètres
         alpha et beta des différentes vannes
         '''
         if vanne.mode == 'confort':
