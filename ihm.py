@@ -165,13 +165,12 @@ class MainWindow(QMainWindow):
         btn = QPushButton("[PARAMETRES]")
         btn.pressed.connect(self.activate_tab_4)
         self.settings_layout.addWidget(btn)
-        self.param = ParamWiget().widget
+        self.param = ParamWiget()
         self.stacklayout.addWidget(self.param)
 
         btn = QPushButton("[RELANCER]")
         btn.pressed.connect(self.reload)
         self.settings_layout.addWidget(btn)
-        # self.stacklayout.addWidget(RelanceWiget().widget)
 
         widget = QWidget()
         widget.setLayout(pagelayout)
@@ -312,10 +311,27 @@ class ProgWiget(QWidget):
 class ParamWiget(QWidget):
     def __init__(self):
         super().__init__()
-        self.widget = QLabel("parametres")
+        layout =  QVBoxLayout()
+        label = QLabel("PARAMETRES PHYSIQUES DE LA SIMULATION :")
+        label.setAlignment(Qt.AlignHCenter | Qt.AlignTop)
+        layout.addWidget(label)
+        grid = QGridLayout()
+        grid.addWidget(QLabel("Temperature moyenne :"),           1, 0)
+        grid.addWidget(QLabel("10.0°C"),                          1, 1)
+        grid.addWidget(QLabel("Amplitude annuelle :"),            2, 0)
+        grid.addWidget(QLabel("8.0°C"),                          2, 1)
+        grid.addWidget(QLabel("Pieces :"),                        3, 0)
+        grid.addWidget(QLabel("Volumes :"),                       3, 1)
+        grid.addWidget(QLabel("Salon"),                           4, 0)
+        grid.addWidget(QLabel("Chambre"),                         5, 0)
+        grid.addWidget(QLabel("Cuisine"),                         6, 0)
+        grid.addWidget(QLabel("50m3"),                            4, 1)
+        grid.addWidget(QLabel("30m3"),                            5, 1)
+        grid.addWidget(QLabel("15m3"),                            6, 1)
+        grid.setContentsMargins(20,20,20,20)
+        grid.setSpacing(69)
+        layout.addLayout(grid)
 
-class RelanceWiget(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.widget = QLabel("relance")
+        self.setLayout(layout)
+
         
