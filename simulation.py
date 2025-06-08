@@ -1,4 +1,9 @@
-# simulation.py
+"""
+auteur : BEROUD Sebastien (FISE27)
+date : 08-05-2025
+description :
+    Module simulant l'evolution de la temperature des differentes pieces d'une maison chauffee a l'aide du thermostat intelligent
+"""
 
 import math
 from controle import ThermostatCentral, VanneThermostatique
