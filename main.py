@@ -37,9 +37,9 @@ if __name__ == "__main__":
 
     # Tracer les résultats
     ihm.save_data(resultats)
-    ihm.tracer(resultats)
+    # ihm.tracer(resultats)
 
     app = ihm.QApplication(sys.argv)
-    w = ihm.MainWindow(resultats)
+    w = ihm.MainWindow()
     w.show()
     app.exec()

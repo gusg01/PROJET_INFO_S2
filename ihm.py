@@ -37,6 +37,8 @@ from PyQt5.QtWidgets import (
     QCalendarWidget
 )
 
+from simulation import Maison, Piece, initialiser_systeme, lancer_simulation
+
 # FILE HANDLING
 
 def save_data(data):
@@ -108,12 +110,28 @@ def tracer(resultats):
 
 
 # IHM
+    
+
+
+
+# resultats = lancer_simulation(maison, thermostat, duree_minutes=525600)  # Simulation sur 1/2 année
+
 
 class MainWindow(QMainWindow):
-    def __init__(self, data):
+    def __init__(self):
         super().__init__()
         self.setWindowTitle("Mon Thermostat Intelligent")
         self.setFixedSize(QSize(405, 720))
+
+        # SIM
+
+        self.maison, salon, chambre, cuisine = self.creer_maison_de_test()
+        self.maison.fin_de_modelisation()
+        self.duree_minutes = 10080
+        self.thermostat, vannes = initialiser_systeme(self.maison, [salon, chambre, cuisine], mode='eco', consigne = 20)
+        self.data = lancer_simulation(self.maison, self.thermostat, self.duree_minutes)  # Simulation sur 7j
+
+        # DISPLAY
 
         pagelayout = QVBoxLayout()
         self.button_layout = QVBoxLayout()
@@ -127,49 +145,72 @@ class MainWindow(QMainWindow):
         btn = QPushButton("MENU")
         btn.pressed.connect(self.activate_tab_1)
         self.button_layout.addWidget(btn)
-        self.stacklayout.addWidget(MenuWiget())
+        self.menu = MenuWiget()
+        self.stacklayout.addWidget(self.menu)
 
         btn = QPushButton("SUIVI")
         btn.pressed.connect(self.activate_tab_2)
         self.button_layout.addWidget(btn)
-        self.stacklayout.addWidget(SuiviWiget(data).plot_graph)
+        self.test = SuiviWiget(self.data).plot_graph
+        self.stacklayout.addWidget(self.test)
 
         btn = QPushButton("PROGRAMME")
         btn.pressed.connect(self.activate_tab_3)
         self.button_layout.addWidget(btn)
-        self.stacklayout.addWidget(ProgWiget())
+        self.prog = ProgWiget()
+        self.stacklayout.addWidget(self.prog)
 
         btn = QPushButton("[PARAMETRES]")
         btn.pressed.connect(self.activate_tab_4)
         self.settings_layout.addWidget(btn)
-        self.stacklayout.addWidget(ParamWiget().widget)
+        self.param = ParamWiget().widget
+        self.stacklayout.addWidget(self.param)
 
         btn = QPushButton("[RELANCER]")
-        btn.pressed.connect(self.activate_tab_5)
+        btn.pressed.connect(self.reload)
         self.settings_layout.addWidget(btn)
-        self.stacklayout.addWidget(RelanceWiget().widget)
+        # self.stacklayout.addWidget(RelanceWiget().widget)
 
         widget = QWidget()
         widget.setLayout(pagelayout)
         self.setCentralWidget(widget)
-    
-    def set_home_layout(self):
-        pass
 
     def activate_tab_1(self):
-        self.stacklayout.setCurrentIndex(0)
+        self.stacklayout.setCurrentWidget(self.menu)
 
     def activate_tab_2(self):
-        self.stacklayout.setCurrentIndex(1)
+        self.stacklayout.setCurrentWidget(self.test)
 
     def activate_tab_3(self):
-        self.stacklayout.setCurrentIndex(2)
+        self.stacklayout.setCurrentWidget(self.prog)
 
     def activate_tab_4(self):
-        self.stacklayout.setCurrentIndex(3)
+        self.stacklayout.setCurrentWidget(self.param) 
 
-    def activate_tab_5(self):
-        self.stacklayout.setCurrentIndex(4)
+    def reload(self):
+        self.stacklayout.setCurrentWidget(self.menu)
+        self.stacklayout.removeWidget(self.test)
+        self.data = lancer_simulation(self.maison, self.thermostat, self.duree_minutes)
+        self.test = SuiviWiget(self.data).plot_graph
+        self.stacklayout.addWidget(self.test)
+
+    def creer_maison_de_test(self):
+        # Création des pièces
+        salon = Piece("Salon", volume=50)
+        chambre = Piece("Chambre", volume=30)
+        cuisine = Piece("Cuisine", volume=15)
+
+        # Création de la maison (entitée coordinatrice)
+        maison = Maison(temperature_moyenne=10, amplitude_annuelle=8.0, amplitude=4.0)
+        maison.ajouter_piece(salon)
+        maison.ajouter_piece(chambre)
+        maison.ajouter_piece(cuisine)
+
+        # Connexions physiques entre pièces (espace de simulation)
+        maison.connecter_pieces(salon, chambre)
+        maison.connecter_pieces(salon, cuisine)
+
+        return maison, salon, chambre, cuisine    
 
 
 class MenuWiget(QWidget):
