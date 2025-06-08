@@ -227,6 +227,7 @@ def lancer_simulation(maison, thermostat, duree_minutes=1440):
     resultats["Exterieur"] = []
     # resultats["alpha"] = []
     resultats["puissance"] = []
+    energie = 0
 
     for minute in range(duree_minutes):
         # Diffusion interne
@@ -237,7 +238,11 @@ def lancer_simulation(maison, thermostat, duree_minutes=1440):
         thermostat.controler_chauffage(maison.minute)
         for vanne in thermostat.vannes:
             if vanne.ouverte:
-                vanne.radiateur.transfer_chaleur(vanne.chauffer() * 60) #en joule
+                energie = vanne.chauffer() * 60
+                vanne.radiateur.transfer_chaleur(energie) #en joule
+            else :
+                energie = 0
+                
 
         maison.maj_temperature(maison.minute)
         #print(maison.pieces[1].radiateur.temperature)
@@ -250,9 +255,5 @@ def lancer_simulation(maison, thermostat, duree_minutes=1440):
         resultats["Exterieur"].append(maison.temperature_exterieure(maison.minute))
 
         # resultats["alpha"] = (thermostat.opti.donner_coeffs(thermostat.vannes[0])[0])
-        temp = (thermostat.opti.donner_puissance(thermostat.vannes[0]))
-        if len(temp) > 0 :
-            resultats["puissance"].append((thermostat.opti.donner_puissance(thermostat.vannes[0]))[-1]/200000)
-        else :
-            resultats["puissance"].append(0)
+        resultats["puissance"].append(energie/2000)
     return resultats

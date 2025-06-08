@@ -30,12 +30,12 @@ if __name__ == "__main__":
     thermostat, vannes = initialiser_systeme([salon, chambre, cuisine], consigne = 20)
     
     # Simulation et récupération des températures
-    resultats = lancer_simulation(maison, thermostat, duree_minutes=10080)  # Simulation sur 7j
-    # resultats = lancer_simulation(maison, thermostat, duree_minutes=525600)  # Simulation sur 1/2 année
+    # resultats = lancer_simulation(maison, thermostat, duree_minutes=10080)  # Simulation sur 7j
+    resultats = lancer_simulation(maison, thermostat, duree_minutes=525600*2)  # Simulation sur 1 année
 
     # Tracer les résultats
     ihm.save_data(resultats)
-    # ihm.tracer(resultats)
+    ihm.tracer(resultats)
 
     app = ihm.QApplication(sys.argv)
     w = ihm.MainWindow()
