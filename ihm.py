@@ -291,10 +291,10 @@ class SuiviWiget(QWidget):
 
         self.plot_graph = pg.PlotWidget()
         self.plot_graph.setBackground("w")
-        self.plot_graph.setTitle("Temperature vs Time", color="b", size="20pt")
-        styles = {"color": "red", "font-size": "18px"}
+        self.plot_graph.setTitle("Temperature sur une semaine", color="k", size="15pt")
+        styles = {"color": "black", "font-size": "15px"}
         self.plot_graph.setLabel("left", "Temperature (°C)", **styles)
-        self.plot_graph.setLabel("bottom", "Time (min)", **styles)
+        self.plot_graph.setLabel("bottom", "Temps (min)", **styles)
         self.plot_graph.addLegend()
         self.plot_graph.showGrid(x=True, y=True)
         self.plot_graph.setXRange(1, n)
