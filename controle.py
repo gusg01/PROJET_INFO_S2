@@ -104,6 +104,10 @@ class ThermostatCentral:
         for vanne in self.vannes:
             vanne.consigne = consigne
 
+    def set_mode_general(self, mode):
+        for vanne in self.vannes:
+            vanne.mode = mode
+
 class VanneThermostatique:
     def __init__(self, piece, radiateur, mode = 'eco', consigne=19.0):
         self.piece = piece

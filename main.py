@@ -29,7 +29,7 @@ def creer_maison_de_test():
 if __name__ == "__main__":
     maison, salon, chambre, cuisine = creer_maison_de_test()
     maison.fin_de_modelisation()
-    thermostat, vannes = initialiser_systeme(maison, [salon, chambre, cuisine], mode='eco', consigne = 20)
+    thermostat, vannes = initialiser_systeme([salon, chambre, cuisine], consigne = 20)
     
     # Simulation et récupération des températures
     resultats = lancer_simulation(maison, thermostat, duree_minutes=10080)  # Simulation sur 7j

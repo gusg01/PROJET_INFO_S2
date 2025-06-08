@@ -129,7 +129,8 @@ class MainWindow(QMainWindow):
         self.maison.fin_de_modelisation()
         self.duree_minutes = 10080
         self.consigne = 20.0
-        self.thermostat, vannes = initialiser_systeme(self.maison, [salon, chambre, cuisine], mode='eco', consigne=self.consigne)
+        self.mode = 'eco'
+        self.thermostat, vannes = initialiser_systeme([salon, chambre, cuisine], consigne=self.consigne)
         self.data = lancer_simulation(self.maison, self.thermostat, self.duree_minutes)  # Simulation sur 7j
 
         # DISPLAY
@@ -193,6 +194,8 @@ class MainWindow(QMainWindow):
         self.stacklayout.removeWidget(self.test)
         self.consigne = self.menu.consigne2
         self.thermostat.set_consigne_generale(self.consigne)
+        self.mode = self.menu.check.currentText()
+        self.thermostat.set_mode_general(self.mode)
         self.data = lancer_simulation(self.maison, self.thermostat, self.duree_minutes)
         self.test = SuiviWiget(self.data).plot_graph
         self.stacklayout.addWidget(self.test)
@@ -227,9 +230,20 @@ class MenuWiget(QWidget):
         self.dial.sliderMoved.connect(self.slider_position)
         self.bar = QLabel("20.0°C")
         self.consigne2 = 20.0
+        font = self.bar.font()
+        font.setPointSize(42)
+        self.bar.setFont(font)
         self.bar.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+
+        self.mode = QHBoxLayout()
+        self.label = QLabel("Mode :")
+        self.check = QComboBox()
+        self.check.addItems(["eco","confort"])
+        self.mode.addWidget(self.label)
+        self.mode.addWidget(self.check)
         layout.addWidget(self.bar)
         layout.addWidget(self.dial)
+        layout.addLayout(self.mode)
 
         self.setLayout(layout)
 

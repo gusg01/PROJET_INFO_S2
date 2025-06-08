@@ -176,7 +176,7 @@ class Maison:
         self.temperature_vect = np.array([self.temperature_exterieure(minute)] + [i.temperature for i in self.pieces] + [i.radiateur.temperature for i in self.pieces])
 
 
-def initialiser_systeme(maison, liste_pieces, mode, consigne = 19):
+def initialiser_systeme(liste_pieces, consigne = 19):
     thermostat = ThermostatCentral()
     vannes = []
 
