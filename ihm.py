@@ -138,7 +138,7 @@ class MainWindow(QMainWindow):
         self.consigne = 20.0
         self.mode = 'eco'
         # self.heure_consigne = np.zeros((7, 48, 3), dtype=int)
-        self.thermostat, vannes = initialiser_systeme([salon, chambre, cuisine], consigne=[])
+        self.thermostat, vannes = initialiser_systeme([salon, chambre, cuisine], consigne=20)
         self.data = lancer_simulation(self.maison, self.thermostat, self.duree_minutes)  # Simulation sur 7j
 
         # DISPLAY
