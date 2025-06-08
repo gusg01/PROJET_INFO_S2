@@ -177,6 +177,9 @@ class Maison:
 
 
 def initialiser_systeme(liste_pieces, consigne = 19):
+    '''
+    
+    '''
     thermostat = ThermostatCentral()
     vannes = []
 
@@ -191,7 +194,7 @@ def initialiser_systeme(liste_pieces, consigne = 19):
 
 # Je pense que lancer_simulation decrit en fait le comportement du thermostat
 
-def lancer_simulation(maison, thermostat, duree_minutes=60):
+def lancer_simulation(maison, thermostat, duree_minutes=1440):
     resultats = {vanne.piece.nom: [] for vanne in thermostat.vannes}
     resultats["Exterieur"] = []
     # resultats["alpha"] = []
