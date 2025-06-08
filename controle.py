@@ -55,7 +55,7 @@ class ThermostatCentral:
 
     def changer_heure_consigne(self, date, debut, fin, val):
         dates = np.array(["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche", "Tous_les_jours"])
-        nbdate = np.where(dates == date)[0][0]
+        nbdate = np.where(dates == date)[0]
         for vanne in range(len(self.vannes)):
             if nbdate < 7 :
                 for k in range(debut, fin):
