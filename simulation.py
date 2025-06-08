@@ -120,6 +120,9 @@ class Maison:
         piece2.ajout_voisin()
 
     def fin_de_modelisation(self):
+        '''
+        fonction qui permet de générer le tableau des transferts thermiques nécessaire au calcul vectoriel
+        '''
         self.pieces_vect = np.array([0] + self.pieces + [i.radiateur for i in self.pieces])
         self.calcul_vect = np.zeros((len(self.pieces_vect), len(self.pieces_vect)))
 
@@ -150,7 +153,7 @@ class Maison:
 
     def temperature_exterieure(self, minute):
         """
-        Calcule la température extérieure en fonction de l'heure (minute du jour).
+        Calcule la température extérieure en fonction de l'heure et du jour (minute du jour).
         """
 
         # --- Variation annuelle ---
@@ -203,7 +206,7 @@ class Maison:
 
 def initialiser_systeme(liste_pieces, consigne = 19):
     '''
-    
+    fonction qui construit le système de chauffage en fonction du sytème de simulation généré
     '''
     thermostat = ThermostatCentral()
     vannes = []
@@ -216,14 +219,14 @@ def initialiser_systeme(liste_pieces, consigne = 19):
 
     return thermostat, vannes
 
-
-# Je pense que lancer_simulation decrit en fait le comportement du thermostat
-
 def lancer_simulation(maison, thermostat, duree_minutes=1440):
+    '''
+    Fonction qui permet de faire tourner la simulation pendant une certaine durée
+    '''
     resultats = {vanne.piece.nom: [] for vanne in thermostat.vannes}
     resultats["Exterieur"] = []
     # resultats["alpha"] = []
-    # resultats["puissance"] = []
+    resultats["puissance"] = []
 
     for minute in range(duree_minutes):
         # Diffusion interne
@@ -247,9 +250,9 @@ def lancer_simulation(maison, thermostat, duree_minutes=1440):
         resultats["Exterieur"].append(maison.temperature_exterieure(maison.minute))
 
         # resultats["alpha"] = (thermostat.opti.donner_coeffs(thermostat.vannes[0])[0])
-        # temp = (thermostat.opti.donner_puissance(thermostat.vannes[0]))
-        # if len(temp) > 0 :
-        #     resultats["puissance"].append((thermostat.opti.donner_puissance(thermostat.vannes[0]))[-1])
-        # else :
-        #     resultats["puissance"].append(0)
+        temp = (thermostat.opti.donner_puissance(thermostat.vannes[0]))
+        if len(temp) > 0 :
+            resultats["puissance"].append((thermostat.opti.donner_puissance(thermostat.vannes[0]))[-1]/200000)
+        else :
+            resultats["puissance"].append(0)
     return resultats

@@ -1,5 +1,3 @@
-# main.py
-
 from controle import ThermostatCentral, VanneThermostatique
 from simulation import Maison, Piece, initialiser_systeme, lancer_simulation
 import ihm  # Pour tracer ensuite

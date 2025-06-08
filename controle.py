@@ -155,6 +155,8 @@ class VanneThermostatique:
 class Optimisation:
     """
     auteur : BEROUD Sebastien (FISE27)
+    Cette classe a pour objectif de mener un algorithme d'optimisation sur les varoiables
+    alpha et beta des vannes thermostatiques
     """
     def __init__(self, vannes):
         self.vannes = np.array(vannes)
@@ -172,12 +174,19 @@ class Optimisation:
         return self.puissances[nb]
     
     def cout(self, puissance, Tfinal, consigne ):
+        '''
+        fonction de coût de l'algorithme d'optimisation
+        '''
         if Tfinal >= consigne:
             return puissance
         else :
             return puissance + (consigne - Tfinal) * 10000000000
 
     def optimiser(self, vanne, puissance, Tfinal):
+        '''
+        fonction qui permet en fonction des coût des deux deriners cycles de chauffage de modifier les paramètres
+        alpha et beta des différentes vannes
+        '''
         if vanne.mode == 'confort':
             nb = np.where(self.vannes == vanne)[0][0]
             self.puissances[nb].append(puissance)

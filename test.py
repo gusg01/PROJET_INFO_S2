@@ -1,4 +1,9 @@
-# test.py
+"""
+auteur : BEROUD Sebastien (FISE27)
+date : 08-05-2025
+description :
+    Module permettant d'effectuer des tests unitaires grâce à la bibliothèque unittest
+"""
 
 import unittest
 from simulation import *
