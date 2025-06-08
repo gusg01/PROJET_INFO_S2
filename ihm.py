@@ -128,7 +128,8 @@ class MainWindow(QMainWindow):
         self.maison, salon, chambre, cuisine = self.creer_maison_de_test()
         self.maison.fin_de_modelisation()
         self.duree_minutes = 10080
-        self.thermostat, vannes = initialiser_systeme(self.maison, [salon, chambre, cuisine], mode='eco', consigne = 20)
+        self.consigne = 20.0
+        self.thermostat, vannes = initialiser_systeme(self.maison, [salon, chambre, cuisine], mode='eco', consigne=self.consigne)
         self.data = lancer_simulation(self.maison, self.thermostat, self.duree_minutes)  # Simulation sur 7j
 
         # DISPLAY
@@ -190,6 +191,8 @@ class MainWindow(QMainWindow):
     def reload(self):
         self.stacklayout.setCurrentWidget(self.menu)
         self.stacklayout.removeWidget(self.test)
+        self.consigne = self.menu.consigne2
+        self.thermostat.set_consigne_generale(self.consigne)
         self.data = lancer_simulation(self.maison, self.thermostat, self.duree_minutes)
         self.test = SuiviWiget(self.data).plot_graph
         self.stacklayout.addWidget(self.test)
@@ -223,6 +226,7 @@ class MenuWiget(QWidget):
         self.dial.setValue(200)
         self.dial.sliderMoved.connect(self.slider_position)
         self.bar = QLabel("20.0°C")
+        self.consigne2 = 20.0
         self.bar.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
         layout.addWidget(self.bar)
         layout.addWidget(self.dial)
@@ -231,6 +235,7 @@ class MenuWiget(QWidget):
 
     def slider_position(self, p):
         self.bar.setText(f"{str(p/10.0)}°C")
+        self.consigne2 = p/10.0
         
 class SuiviWiget(QWidget):
     def __init__(self, resultats):

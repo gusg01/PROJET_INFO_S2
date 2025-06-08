@@ -100,6 +100,10 @@ class ThermostatCentral:
                 vanne.switchOptimisation = True
                 vanne.switchPuissance = 0
 
+    def set_consigne_generale(self, consigne):
+        for vanne in self.vannes:
+            vanne.consigne = consigne
+
 class VanneThermostatique:
     def __init__(self, piece, radiateur, mode = 'eco', consigne=19.0):
         self.piece = piece
