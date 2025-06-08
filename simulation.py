@@ -10,6 +10,10 @@ from controle import ThermostatCentral, VanneThermostatique
 import numpy as np
 
 class Object_thermique:
+    '''
+    Défini un objet qui contient de l'énergie et qui peut recevoir et donner de l'énergie,
+    perdant ou gagnant ainsi en température
+    '''
     def __init__(self, temperature_init = 20):
         self.inertie = 10000 #juste pour définir la variable
         self.temperature = temperature_init
@@ -165,6 +169,22 @@ class Maison:
         '''
         fonction qui simule les échangent de châleur entre les pièces et avec l'extérieur
         '''
+        ### Code en l'absence de calcul vectoriel
+        # for piece in self.connexions.keys():
+        #     for voisine in self.connexions[piece]:
+        #         echange = (piece.temperature - voisine.temperature)/(self.Rint/piece.surface_mur) #énergie échange en 1 sec par le mur
+        #         piece.transfer_chaleur(-60 * echange) # pas de temps de 1 min donc 60 sec
+        #         print(60 * echange)
+        #     échanges de châleur avec l'extérieur
+        #     echange = self.h_conv * (piece.temperature - piece.radiateur.temperature) * piece.radiateur.surface_echange
+        #     print(60 * echange)
+        #     piece.transfer_chaleur(-60 * echange)
+        #     piece.radiateur.transfer_chaleur(60 * echange)
+        #     n = 4 - len(self.connexions[piece])
+        #     echange = n * (piece.temperature - self.temperature_exterieure(minute)) / (self.Rext/piece.surface_mur)
+        #     print(60 * echange)
+        #     piece.transfer_chaleur(-60 * echange)
+
         # prise en compte des echanges de chaleur entre les pièces
 
         echange = (self.temperature_vect @ self.calcul_vect) * 60 #puissance pendant 60 secondes
