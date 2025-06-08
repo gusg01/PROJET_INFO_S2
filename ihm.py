@@ -140,6 +140,7 @@ class MainWindow(QMainWindow):
         # self.heure_consigne = np.zeros((7, 48, 3), dtype=int)
         self.thermostat, vannes = initialiser_systeme([salon, chambre, cuisine], consigne=20)
         self.data = lancer_simulation(self.maison, self.thermostat, self.duree_minutes)  # Simulation sur 7j
+        self.timer = self.maison.minute
 
         # DISPLAY
 
@@ -161,7 +162,7 @@ class MainWindow(QMainWindow):
         btn = QPushButton("SUIVI")
         btn.pressed.connect(self.activate_tab_2)
         self.button_layout.addWidget(btn)
-        self.test = SuiviWiget(self.data).plot_graph
+        self.test = SuiviWiget(self.data, self.timer).plot_graph
         self.stacklayout.addWidget(self.test)
 
         btn = QPushButton("PROGRAMME")
@@ -207,7 +208,8 @@ class MainWindow(QMainWindow):
         self.mode = self.menu.check.currentText()
         self.thermostat.set_mode_general(self.mode)
         self.data = lancer_simulation(self.maison, self.thermostat, self.duree_minutes)
-        self.test = SuiviWiget(self.data).plot_graph
+        self.timer = self.maison.minute
+        self.test = SuiviWiget(self.data, self.timer).plot_graph
         self.stacklayout.addWidget(self.test)
 
     def ajouter_heure_consigne(self):
@@ -283,7 +285,7 @@ class SuiviWiget(QWidget):
     Affiche l'evolution de la temperature en fonction du temps
     C'est a dire les resultats de la simulation, par defaut sur une semaine
     """
-    def __init__(self, resultats):
+    def __init__(self, resultats, timer):
         super().__init__()
         # self.widget = QLabel("test")
         # Temperature vs time plot
@@ -294,7 +296,7 @@ class SuiviWiget(QWidget):
         self.plot_graph.setTitle("Temperature sur une semaine", color="k", size="15pt")
         styles = {"color": "black", "font-size": "15px"}
         self.plot_graph.setLabel("left", "Temperature (°C)", **styles)
-        self.plot_graph.setLabel("bottom", "Temps (min)", **styles)
+        self.plot_graph.setLabel("bottom", f"Temps (min) | {timer//1440} jours passés" , **styles)
         self.plot_graph.addLegend()
         self.plot_graph.showGrid(x=True, y=True)
         self.plot_graph.setXRange(1, n)
