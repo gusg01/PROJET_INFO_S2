@@ -16,3 +16,8 @@ UTILISER GIT :
     git add .
     git commit -m "message du commit"
     git push origin main
+
+### > COMPILER :
+
+    pip install pyinstaller
+    pyinstaller main.py --onedir
